@@ -55,6 +55,12 @@
       '<span class="mode-desc">Teste-toi en QCM</span></button>';
     html += "</div>";
 
+    html +=
+      '<div class="add-row">' +
+      '<button class="btn btn-secondary" type="button" data-add="card">+ Carte</button>' +
+      '<button class="btn btn-secondary" type="button" data-add="question">+ Question</button>' +
+      "</div>";
+
     html += '<h3 class="section-title">Cartes (' + s.cards.length + ")</h3>";
     if (s.cards.length === 0) {
       html += '<p class="subject-sub">Aucune carte pour l\'instant.</p>';
@@ -139,6 +145,16 @@
   });
 
   subjectEl.addEventListener("click", function (e) {
+    var addBtn = e.target.closest("[data-add]");
+    if (addBtn) {
+      document.dispatchEvent(
+        new CustomEvent("samquiz:add", {
+          detail: { type: addBtn.getAttribute("data-add"), id: currentId }
+        })
+      );
+      return;
+    }
+
     var modeBtn = e.target.closest("[data-mode]");
     if (modeBtn) {
       var ev = new CustomEvent("samquiz:start-mode", {
