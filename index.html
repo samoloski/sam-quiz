@@ -1,15 +1,18 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
   <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#4f46e5">
   <title>sam quiz</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/subject.css">
 </head>
 <body>
 
   <header id="topbar">
+    <button class="back-btn" id="btn-back" type="button" aria-label="Retour">←</button>
     <h1>sam quiz</h1>
   </header>
 
@@ -22,9 +25,13 @@
         </p>
       </div>
     </section>
+
+    <section id="screen-subject" hidden></section>
   </main>
 
   <button class="fab" id="btn-add-subject" type="button">+ Matière</button>
+
+  <div class="toast" id="toast" hidden></div>
 
   <div class="modal" id="modal-subject" hidden>
     <div class="modal-box">
@@ -47,5 +54,6 @@
 
   <script src="js/storage.js" charset="utf-8"></script>
   <script src="js/home.js" charset="utf-8"></script>
+  <script src="js/app.js" charset="utf-8"></script>
 </body>
 </html>
