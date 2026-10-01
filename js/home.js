@@ -117,5 +117,7 @@
     });
   });
 
+  document.addEventListener("samquiz:show-home", render);
+
   render();
 })();
