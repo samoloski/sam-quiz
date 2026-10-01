@@ -141,7 +141,8 @@
   });
 
   window.addEventListener("popstate", function () {
-    if (currentId) showHome();
+    var onSubject = history.state && history.state.screen === "subject";
+    if (currentId && !onSubject) showHome();
   });
 
   subjectEl.addEventListener("click", function (e) {
