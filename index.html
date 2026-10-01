@@ -5,13 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#4f46e5">
   <title>sam quiz</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
   <header id="topbar">
     <h1>sam quiz</h1>
   </header>
+
   <main id="app">
-    <p>Structure prête ✅</p>
+    <section id="screen-home">
+      <div id="home-list">
+        <p class="empty">
+          Aucune matière pour l'instant.<br>
+          Appuie sur « + Matière » pour commencer.
+        </p>
+      </div>
+    </section>
   </main>
+
+  <button class="fab" id="btn-add-subject" type="button">+ Matière</button>
+
+  <div class="modal" id="modal-subject" hidden>
+    <div class="modal-box">
+      <h2>Nouvelle matière</h2>
+      <label class="field">
+        <span>Nom de la matière</span>
+        <input type="text" id="input-subject-name" placeholder="Ex : Mathématiques" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>Catégorie</span>
+        <input type="text" id="input-subject-category" list="category-list" placeholder="Ex : Sciences" autocomplete="off">
+        <datalist id="category-list"></datalist>
+      </label>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-cancel-subject" type="button">Annuler</button>
+        <button class="btn btn-primary" id="btn-save-subject" type="button">Ajouter</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
