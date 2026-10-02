@@ -1,6 +1,7 @@
-/* sam quiz : samoloski ai - generation des questions du jour */
+/* sam quiz : samoloski ai - generation des questions du jour (avec verification) */
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-const LOCK_MAX_AGE_MS = 120000;
+const LOCK_MAX_AGE_MS = 180000;
+const MIN_KEPT = 7;
 
 const SUBJECTS = {
   maths: {
@@ -119,7 +120,7 @@ function buildMessages(subject, level) {
     {
       role: "system",
       content:
-        "Tu es Samoloski AI, un professeur qui crée des QCM pour des élèves de première série D au Togo. " +
+        "Tu es Samoloski AI, un professeur rigoureux qui crée des QCM pour des élèves de première série D au Togo. " +
         "Tu réponds uniquement avec un tableau JSON valide, sans texte autour et sans balises markdown."
     },
     {
@@ -130,9 +131,10 @@ function buildMessages(subject, level) {
         "Difficulté : " + LEVELS[level] + ".\n" +
         "Règles :\n" +
         "- Langue des questions : " + subject.lang + ".\n" +
-        "- Chaque question a exactement 4 choix, dont UN SEUL correct. Les autres sont plausibles mais clairement faux.\n" +
-        "- Les 10 questions portent sur des points différents.\n" +
-        "- Vérifie chaque calcul avant d'écrire la réponse. Si tu n'es pas sûr d'une question, remplace-la.\n" +
+        "- Chaque question a exactement 4 choix, dont UN SEUL correct, indiscutable et conforme au programme officiel. Les autres sont plausibles mais clairement faux.\n" +
+        "- Chaque question doit être complète et compréhensible seule : définis toute lettre ou variable utilisée (par exemple n, r, u₀).\n" +
+        "- AU PLUS UNE question par notion du cours : pas deux questions sur la même formule.\n" +
+        "- Les valeurs usuelles et les formules du cours doivent être exactes. Vérifie chaque calcul avant d'écrire la réponse. Si tu n'es pas sûr d'une question, remplace-la.\n" +
         "- Pas de LaTeX, pas de tableau : écris les formules en texte simple (x², √3, 1/2).\n" +
         "- Explication : une ou deux phrases qui justifient la bonne réponse.\n" +
         "Format exact : [{\"q\":\"...\",\"c\":[\"...\",\"...\",\"...\",\"...\"],\"a\":0,\"e\":\"...\"}]\n" +
@@ -189,15 +191,48 @@ function readText(out) {
   return typeof candidate === "string" ? candidate : JSON.stringify(candidate);
 }
 
+async function verify(env, list) {
+  const text = list
+    .map(function (it, i) {
+      return (
+        i + 1 + ". " + it.q + "\n" +
+        it.c.map(function (c, j) { return "ABCD".charAt(j) + ") " + c; }).join("\n")
+      );
+    })
+    .join("\n\n");
+
+  const out = await env.AI.run(MODEL, {
+    messages: [
+      {
+        role: "system",
+        content:
+          "Tu es un correcteur expert et prudent. Tu résous chaque QCM toi-même, sans a priori. " +
+          "Tu réponds uniquement avec un tableau JSON de lettres, une par question, par exemple [\"A\",\"C\",\"B\"]."
+      },
+      { role: "user", content: text }
+    ],
+    max_tokens: 200,
+    temperature: 0
+  });
+
+  const arr = extractArray(readText(out));
+  if (!Array.isArray(arr) || arr.length !== list.length) return null;
+  return list.filter(function (it, i) {
+    return String(arr[i]).trim().toUpperCase().charAt(0) === "ABCD".charAt(it.a);
+  });
+}
+
 async function generate(env, subject, level) {
   for (let attempt = 0; attempt < 2; attempt++) {
     const out = await env.AI.run(MODEL, {
       messages: buildMessages(subject, level),
       max_tokens: 3000,
-      temperature: 0.5
+      temperature: 0.4
     });
     const list = cleanQuestions(extractArray(readText(out)));
-    if (list.length >= 8) return list;
+    if (list.length < 8) continue;
+    const checked = await verify(env, list);
+    if (checked && checked.length >= MIN_KEPT) return checked;
   }
   return null;
 }
@@ -252,8 +287,7 @@ export async function onRequestGet(context) {
   }
 
   if (!list) {
-    await sbFetch(env, "daily_locks?" + filter, { method: "DELETE" });
-    return json({ ok: false, error: err || "generation invalide" }, 502);
+    return json({ ok: false, error: err || "generation non validee, nouvel essai dans quelques minutes" }, 502);
   }
 
   const ins = await sbFetch(env, "daily_sets?on_conflict=day,subject,level", {
@@ -264,5 +298,5 @@ export async function onRequestGet(context) {
   await sbFetch(env, "daily_locks?" + filter, { method: "DELETE" });
 
   if (!ins.ok) return json({ ok: false, error: "enregistrement impossible" }, 502);
-  return json({ ok: true, ready: true, generated: true });
+  return json({ ok: true, ready: true, generated: true, kept: list.length });
 }
