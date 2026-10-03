@@ -1,0 +1,122 @@
+/* sam quiz : serie de jours et statistiques */
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.stat-tile {
+  padding: 10px 6px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  text-align: center;
+  animation: popIn 0.4s ease both;
+}
+
+.stat-tile b {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.stat-tile span {
+  font-size: 0.7rem;
+  opacity: 0.85;
+}
+
+.stat-hint {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.stat-link {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: 14px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+
+.stat-link:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.st-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.st-card {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  animation: fadeUp 0.4s ease both;
+}
+
+.st-card b {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.st-card span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.st-subjects {
+  margin-top: 14px;
+}
+
+.st-row {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  animation: fadeUp 0.4s ease both;
+}
+
+.st-row-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.st-row-top small {
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.st-bar {
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: #e8eaf3;
+  overflow: hidden;
+}
+
+.st-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-2));
+  transition: width 0.6s ease;
+}

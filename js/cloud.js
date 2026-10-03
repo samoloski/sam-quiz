@@ -1,8 +1,9 @@
-/* sam quiz : connexion Supabase (compte anonyme, pseudo, classement, defi du jour) */
+/* sam quiz : connexion Supabase (compte anonyme, pseudo, classement, defi du jour, statistiques) */
 (function () {
   var cfg = window.SAMQUIZ_CONFIG || {};
   var client = null;
   var profile = null;
+  var userPromise = null;
 
   if (window.supabase && cfg.url && cfg.key) {
     try {
@@ -18,12 +19,20 @@
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
 
-  async function ensureUser() {
-    var res = await client.auth.getSession();
-    if (res.data && res.data.session) return res.data.session.user;
-    var anon = await client.auth.signInAnonymously();
-    if (anon.error) throw anon.error;
-    return anon.data.user;
+  function ensureUser() {
+    if (!userPromise) {
+      userPromise = (async function () {
+        var res = await client.auth.getSession();
+        if (res.data && res.data.session) return res.data.session.user;
+        var anon = await client.auth.signInAnonymously();
+        if (anon.error) throw anon.error;
+        return anon.data.user;
+      })().catch(function (err) {
+        userPromise = null;
+        throw err;
+      });
+    }
+    return userPromise;
   }
 
   async function loadProfile() {
@@ -79,6 +88,14 @@
       .limit(50);
     if (res.error) throw res.error;
     return res.data || [];
+  }
+
+  async function getStats() {
+    if (!client) return null;
+    await ensureUser();
+    var res = await client.rpc("get_my_stats");
+    if (res.error) throw res.error;
+    return res.data;
   }
 
   /* ---- defi du jour (Samoloski AI) ---- */
@@ -163,6 +180,7 @@
     createProfile: createProfile,
     submitScore: submitScore,
     leaderboard: leaderboard,
+    getStats: getStats,
     prepareDaily: prepareDaily,
     getDailySet: getDailySet,
     dailyAttempt: dailyAttempt,
