@@ -8,6 +8,28 @@
   var currentId = null;
   var toastTimer = null;
 
+  var AI_MAP = {
+    mathematiques: "maths",
+    maths: "maths",
+    physiquechimie: "physique",
+    physique: "physique",
+    svt: "svt",
+    francais: "francais",
+    anglais: "anglais",
+    histoiregeographie: "histgeo",
+    histoiregeo: "histgeo",
+    histgeo: "histgeo"
+  };
+
+  function aiId(name) {
+    var key = String(name)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+    return AI_MAP[key] || null;
+  }
+
   function esc(text) {
     var div = document.createElement("div");
     div.textContent = text;
@@ -54,6 +76,14 @@
       '<span class="mode-title">Quiz</span>' +
       '<span class="mode-desc">Teste-toi en QCM</span></button>';
     html += "</div>";
+
+    if (aiId(s.name)) {
+      html +=
+        '<button class="ai-card" type="button" data-ai="1">' +
+        '<span class="ai-icon">🤖</span>' +
+        "<span><strong>Samoloski AI</strong>" +
+        "<small>Défi du jour : de nouvelles questions chaque jour</small></span></button>";
+    }
 
     html +=
       '<div class="add-row">' +
@@ -146,6 +176,18 @@
   });
 
   subjectEl.addEventListener("click", function (e) {
+    var aiBtn = e.target.closest("[data-ai]");
+    if (aiBtn) {
+      var s = window.SamStore.getSubject(currentId);
+      var id = s ? aiId(s.name) : null;
+      if (id) {
+        document.dispatchEvent(
+          new CustomEvent("samquiz:open-daily", { detail: { id: id, name: s.name } })
+        );
+      }
+      return;
+    }
+
     var addBtn = e.target.closest("[data-add]");
     if (addBtn) {
       document.dispatchEvent(

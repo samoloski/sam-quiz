@@ -1,0 +1,115 @@
+/* sam quiz : Samoloski AI - defi du jour */
+
+.ai-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+  animation: fadeUp 0.45s ease both;
+  transition: transform 0.12s ease;
+}
+
+.ai-card:active {
+  transform: scale(0.97);
+}
+
+.ai-card .ai-icon {
+  font-size: 1.9rem;
+}
+
+.ai-card strong {
+  display: block;
+  font-size: 1.05rem;
+}
+
+.ai-card small {
+  opacity: 0.9;
+}
+
+.dl-title {
+  margin: 10px 0 6px;
+  font-size: 1.4rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.dl-spinner {
+  width: 54px;
+  height: 54px;
+  margin: 30px auto 14px;
+  border: 5px solid #e0e3f1;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: dlspin 0.9s linear infinite;
+}
+
+@keyframes dlspin {
+  to { transform: rotate(360deg); }
+}
+
+.quiz-choice.picked {
+  border-color: var(--primary);
+  background: #eef0ff;
+}
+
+.quiz-choice.picked .quiz-letter {
+  background: var(--primary);
+  color: #fff;
+}
+
+.dl-next {
+  margin-top: 18px;
+}
+
+.dl-next:disabled {
+  opacity: 0.45;
+}
+
+.dl-review {
+  margin-bottom: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left-width: 5px;
+  text-align: left;
+  animation: fadeUp 0.35s ease both;
+}
+
+.dl-review.ok {
+  border-left-color: #10b981;
+}
+
+.dl-review.ko {
+  border-left-color: #ef4444;
+}
+
+.dl-review .item-sub {
+  margin-top: 4px;
+}
+
+.dl-note {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.dl-section {
+  margin: 28px 0 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-align: left;
+}
