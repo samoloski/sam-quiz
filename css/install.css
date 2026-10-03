@@ -1,0 +1,32 @@
+/* sam quiz : bouton d'installation */
+
+.install-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
+  border: none;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #4338ca;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.12s ease;
+}
+
+.install-btn:active {
+  transform: scale(0.97);
+}
+
+.install-btn[hidden] {
+  display: none;
+}
+
+.install-btn span {
+  font-size: 1.2rem;
+}
