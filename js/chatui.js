@@ -12,11 +12,35 @@
     "Passé simple ou imparfait : comment choisir ?"
   ];
 
+  var FAB_LOGO =
+    '<svg viewBox="0 0 64 64" aria-hidden="true">' +
+    '<defs><linearGradient id="fabGrad" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#a78bfa"/>' +
+    "</linearGradient></defs>" +
+    '<line x1="32" y1="6" x2="32" y2="14" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +
+    '<circle cx="32" cy="5" r="3.5" fill="#fbbf24"/>' +
+    '<rect x="4" y="26" width="6" height="12" rx="3" fill="#fff" opacity="0.85"/>' +
+    '<rect x="54" y="26" width="6" height="12" rx="3" fill="#fff" opacity="0.85"/>' +
+    '<rect x="10" y="14" width="44" height="38" rx="14" fill="url(#fabGrad)"/>' +
+    '<rect x="15" y="21" width="34" height="24" rx="10" fill="#0f172a"/>' +
+    '<g class="hub-eyes">' +
+    '<circle cx="25" cy="32" r="4" fill="#38bdf8"/>' +
+    '<circle cx="39" cy="32" r="4" fill="#38bdf8"/></g>' +
+    '<path d="M26 40 Q32 45 38 40" stroke="#fbbf24" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+    "</svg>";
+
   var btn = document.createElement("button");
   btn.className = "chat-open";
   btn.type = "button";
   btn.innerHTML = "<span>💬</span> Poser une question à Samoloski AI";
   slot.insertBefore(btn, slot.firstChild);
+
+  var fab = document.createElement("button");
+  fab.className = "chat-fab";
+  fab.type = "button";
+  fab.setAttribute("aria-label", "Poser une question à Samoloski AI");
+  fab.innerHTML = FAB_LOGO;
+  document.body.appendChild(fab);
 
   var screen = document.createElement("div");
   screen.className = "chat-screen";
@@ -132,6 +156,7 @@
   }
 
   async function open() {
+    if (!screen.hidden) return;
     screen.innerHTML =
       "<div class='chat-top'>" +
       "<button class='quiz-close' id='ch-close' type='button' aria-label='Fermer'>✕</button>" +
@@ -186,6 +211,7 @@
   }
 
   btn.addEventListener("click", open);
+  fab.addEventListener("click", open);
 
   screen.addEventListener("click", function (e) {
     if (e.target.closest("#ch-close")) {

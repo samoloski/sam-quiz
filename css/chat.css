@@ -1,5 +1,47 @@
 /* sam quiz : chat avec Samoloski AI */
 
+/* le bouton robot remplace le bouton + Matiere (le bouton reste dans le code, simplement cache) */
+#btn-add-subject {
+  display: none;
+}
+
+.chat-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 15;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e1b4b, #4338ca);
+  box-shadow: 0 8px 22px rgba(67, 56, 202, 0.5);
+  cursor: pointer;
+  animation: popIn 0.5s ease 0.4s both, fabGlow 3s ease-in-out 1.2s infinite;
+  transition: transform 0.12s ease;
+}
+
+.chat-fab[hidden] {
+  display: none;
+}
+
+.chat-fab:active {
+  transform: scale(0.92);
+}
+
+.chat-fab svg {
+  display: block;
+  width: 44px;
+  height: 44px;
+  margin: auto;
+}
+
+@keyframes fabGlow {
+  0%, 100% { box-shadow: 0 8px 22px rgba(67, 56, 202, 0.5); }
+  50%      { box-shadow: 0 8px 30px rgba(14, 165, 233, 0.75); }
+}
+
 .chat-open {
   display: flex;
   align-items: center;
