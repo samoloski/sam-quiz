@@ -1,7 +1,7 @@
 /* sam quiz : samoloski ai - generation des questions du jour (avec verification) */
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const LOCK_MAX_AGE_MS = 180000;
-const MIN_KEPT = 7;
+const MIN_KEPT = 6;
 
 const SUBJECTS = {
   maths: {
@@ -131,12 +131,13 @@ function buildMessages(subject, level) {
         "Difficulté : " + LEVELS[level] + ".\n" +
         "Règles :\n" +
         "- Langue des questions : " + subject.lang + ".\n" +
-        "- Chaque question a exactement 4 choix, dont UN SEUL correct, indiscutable et conforme au programme officiel. Les autres sont plausibles mais clairement faux.\n" +
-        "- Chaque question doit être complète et compréhensible seule : définis toute lettre ou variable utilisée (par exemple n, r, u₀).\n" +
-        "- AU PLUS UNE question par notion du cours : pas deux questions sur la même formule.\n" +
-        "- Les valeurs usuelles et les formules du cours doivent être exactes. Vérifie chaque calcul avant d'écrire la réponse. Si tu n'es pas sûr d'une question, remplace-la.\n" +
+        "- Chaque question a exactement 4 choix, dont UN SEUL correct, indiscutable et conforme au programme officiel. Les trois autres sont plausibles mais clairement faux. La bonne réponse doit réellement figurer parmi les 4 choix et répondre exactement à la question posée.\n" +
+        "- INTERDIT : les questions qui demandent seulement de réciter, du type « Quelle est la formule de... ». Préfère les applications avec des valeurs précises (calcul court) ou les questions de compréhension.\n" +
+        "- Chaque question doit être complète et compréhensible seule : définis toute lettre ou variable utilisée (par exemple n, r, u₀) et énonce les conditions de validité d'une propriété (par exemple |r| < 1).\n" +
+        "- AU PLUS UNE question par notion du cours.\n" +
+        "- Vérifie chaque calcul avant d'écrire la réponse. Si tu n'es pas sûr d'une question, remplace-la.\n" +
         "- Pas de LaTeX, pas de tableau : écris les formules en texte simple (x², √3, 1/2).\n" +
-        "- Explication : une ou deux phrases qui justifient la bonne réponse.\n" +
+        "- Explication : une ou deux phrases exactes qui refont le calcul ou le raisonnement.\n" +
         "Format exact : [{\"q\":\"...\",\"c\":[\"...\",\"...\",\"...\",\"...\"],\"a\":0,\"e\":\"...\"}]\n" +
         "où \"a\" est l'index (0 à 3) du bon choix."
     }
@@ -191,12 +192,13 @@ function readText(out) {
   return typeof candidate === "string" ? candidate : JSON.stringify(candidate);
 }
 
-async function verify(env, list) {
+async function verifySolve(env, list) {
   const text = list
     .map(function (it, i) {
       return (
         i + 1 + ". " + it.q + "\n" +
-        it.c.map(function (c, j) { return "ABCD".charAt(j) + ") " + c; }).join("\n")
+        it.c.map(function (c, j) { return "ABCD".charAt(j) + ") " + c; }).join("\n") + "\n" +
+        "E) Aucune de ces réponses n'est correcte"
       );
     })
     .join("\n\n");
@@ -207,7 +209,8 @@ async function verify(env, list) {
         role: "system",
         content:
           "Tu es un correcteur expert et prudent. Tu résous chaque QCM toi-même, sans a priori. " +
-          "Tu réponds uniquement avec un tableau JSON de lettres, une par question, par exemple [\"A\",\"C\",\"B\"]."
+          "Si aucune réponse de A à D n'est exacte, ou si la question est incomplète ou ambiguë, réponds E. " +
+          "Tu réponds uniquement avec un tableau JSON de lettres, une par question, par exemple [\"A\",\"C\",\"E\"]."
       },
       { role: "user", content: text }
     ],
@@ -222,6 +225,40 @@ async function verify(env, list) {
   });
 }
 
+async function verifyExplanations(env, list) {
+  const text = list
+    .map(function (it, i) {
+      return (
+        i + 1 + ". " + it.q + "\n" +
+        "Réponse proposée : " + "ABCD".charAt(it.a) + ") " + it.c[it.a] + "\n" +
+        "Explication : " + it.e
+      );
+    })
+    .join("\n\n");
+
+  const out = await env.AI.run(MODEL, {
+    messages: [
+      {
+        role: "system",
+        content:
+          "Tu es un correcteur expert et exigeant. Pour chaque question, on te donne la réponse proposée et son explication. " +
+          "Réponds OK si l'explication est exacte, cohérente avec la question et avec la réponse, et ne contient aucune erreur. " +
+          "Réponds KO si elle contient une erreur, un raisonnement faux ou une contradiction. " +
+          "Tu réponds uniquement avec un tableau JSON, par exemple [\"OK\",\"KO\",\"OK\"]."
+      },
+      { role: "user", content: text }
+    ],
+    max_tokens: 200,
+    temperature: 0
+  });
+
+  const arr = extractArray(readText(out));
+  if (!Array.isArray(arr) || arr.length !== list.length) return null;
+  return list.filter(function (it, i) {
+    return String(arr[i]).trim().toUpperCase().indexOf("OK") === 0;
+  });
+}
+
 async function generate(env, subject, level) {
   for (let attempt = 0; attempt < 2; attempt++) {
     const out = await env.AI.run(MODEL, {
@@ -231,8 +268,13 @@ async function generate(env, subject, level) {
     });
     const list = cleanQuestions(extractArray(readText(out)));
     if (list.length < 8) continue;
-    const checked = await verify(env, list);
-    if (checked && checked.length >= MIN_KEPT) return checked;
+
+    const solved = await verifySolve(env, list);
+    if (!solved || solved.length < MIN_KEPT) continue;
+
+    const explained = await verifyExplanations(env, solved);
+    const finalList = explained || solved;
+    if (finalList.length >= MIN_KEPT) return finalList;
   }
   return null;
 }
