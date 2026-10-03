@@ -1,4 +1,4 @@
-/* sam quiz : serie de jours et statistiques */
+/* sam quiz : serie de jours, statistiques et synchronisation du total de SG */
 (function () {
   var cloud = window.SamCloud;
   var top = document.getElementById("hub-slot-top");
@@ -29,6 +29,11 @@
 
   function pct(correct, total) {
     return total ? Math.round((correct / total) * 100) : null;
+  }
+
+  function setPill(sg) {
+    var pill = document.querySelector(".sg-pill");
+    if (pill && typeof sg === "number") pill.textContent = "⭐ " + sg + " SG";
   }
 
   function renderTop() {
@@ -62,6 +67,7 @@
       .getStats()
       .then(function (d) {
         data = d;
+        setPill(d.sg);
         renderTop();
       })
       .catch(function (e) {
