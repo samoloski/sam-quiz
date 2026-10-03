@@ -1,4 +1,4 @@
-/* sam quiz : connexion Supabase (compte anonyme, pseudo, classement, defi du jour, statistiques) */
+/* sam quiz : connexion Supabase (compte anonyme, pseudo, classement, defi du jour, statistiques, chat) */
 (function () {
   var cfg = window.SAMQUIZ_CONFIG || {};
   var client = null;
@@ -158,6 +158,42 @@
     return data;
   }
 
+  /* ---- chat avec Samoloski AI ---- */
+
+  async function chatAsk(message, turns) {
+    if (!client) throw new Error("Le chat demande une connexion internet.");
+    await ensureUser();
+    var s = await client.auth.getSession();
+    var token = s.data && s.data.session ? s.data.session.access_token : "";
+    var r = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ message: message, history: turns || [] })
+    });
+    var data = null;
+    try {
+      data = await r.json();
+    } catch (e) {
+      data = null;
+    }
+    if (!data) throw new Error("Réponse illisible, réessaie.");
+    return data;
+  }
+
+  async function chatUsed() {
+    if (!client) return null;
+    var user = await ensureUser();
+    var day = new Date().toISOString().slice(0, 10);
+    var res = await client
+      .from("chat_usage")
+      .select("used")
+      .eq("user_id", user.id)
+      .eq("day", day)
+      .maybeSingle();
+    if (res.error) throw res.error;
+    return res.data ? res.data.used : 0;
+  }
+
   document.addEventListener("samquiz:quiz-finished", function (e) {
     var r = e.detail;
     if (!r.rewarded || !profile) return;
@@ -184,6 +220,8 @@
     prepareDaily: prepareDaily,
     getDailySet: getDailySet,
     dailyAttempt: dailyAttempt,
-    submitDaily: submitDaily
+    submitDaily: submitDaily,
+    chatAsk: chatAsk,
+    chatUsed: chatUsed
   };
 })();
