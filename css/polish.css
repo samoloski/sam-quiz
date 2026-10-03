@@ -1,0 +1,161 @@
+/* sam quiz : finitions (interface plus propre et plus animee) */
+
+/* barre du haut compacte avec le logo */
+#topbar {
+  padding: 12px 16px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  border-radius: 0 0 22px 22px;
+}
+
+#topbar h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+}
+
+#topbar h1::before {
+  content: "";
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: url("/icons/icon-192.png") center / cover;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* plus d'espace sous la liste pour le bouton + Matiere */
+#app {
+  padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+}
+
+.fab {
+  padding: 14px 20px;
+}
+
+/* effet d'appui retabli : les animations d'entree ne bloquent plus le :active */
+.subject-card,
+.mode-card,
+.quiz-choice,
+.ai-card {
+  animation-fill-mode: backwards;
+}
+
+/* carte Samoloski AI : plus compacte, fond anime */
+.ai-hub {
+  padding: 16px 14px 14px;
+  background-size: 220% 220%;
+  animation: fadeUp 0.5s ease both, hubFlow 14s ease-in-out infinite;
+}
+
+@keyframes hubFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hub-label {
+  margin-top: 14px;
+}
+
+.hub-hint {
+  font-size: 0.74rem;
+  margin-bottom: 8px;
+}
+
+.hub-chips {
+  gap: 8px;
+}
+
+.hub-chip {
+  padding: 9px 4px;
+  animation: chipIn 0.45s ease backwards;
+}
+
+.hub-chip span {
+  font-size: 1.3rem;
+}
+
+.hub-chip:nth-child(1) { animation-delay: 0.05s; }
+.hub-chip:nth-child(2) { animation-delay: 0.10s; }
+.hub-chip:nth-child(3) { animation-delay: 0.15s; }
+.hub-chip:nth-child(4) { animation-delay: 0.20s; }
+.hub-chip:nth-child(5) { animation-delay: 0.25s; }
+.hub-chip:nth-child(6) { animation-delay: 0.30s; }
+
+@keyframes chipIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to   { opacity: 1; transform: none; }
+}
+
+.stat-tile:nth-child(2) { animation-delay: 0.08s; }
+.stat-tile:nth-child(3) { animation-delay: 0.16s; }
+
+/* tuiles de chargement */
+.stat-tiles.skeleton .stat-tile {
+  height: 58px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.24),
+    rgba(255, 255, 255, 0.08)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* icones des matieres */
+.subject-card {
+  gap: 12px;
+}
+
+.subject-ico {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: #eef0ff;
+  font-size: 1.35rem;
+}
+
+.subject-card .subject-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* effet d'onde au toucher */
+.ripple-host {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  transform: scale(0);
+  animation: rippleGo 0.55s ease-out forwards;
+  pointer-events: none;
+}
+
+.subject-card .ripple,
+.mode-card .ripple,
+.level-card .ripple,
+.quiz-choice .ripple,
+.btn-secondary .ripple,
+.item-del .ripple,
+.quiz-close .ripple {
+  background: rgba(79, 70, 229, 0.18);
+}
+
+@keyframes rippleGo {
+  to { transform: scale(2.6); opacity: 0; }
+}
