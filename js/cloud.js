@@ -4,6 +4,7 @@
   var client = null;
   var profile = null;
   var userPromise = null;
+  var LOCAL_KEY = "samquiz:pseudo";
 
   if (window.supabase && cfg.url && cfg.key) {
     try {
@@ -17,6 +18,21 @@
 
   function sleep(ms) {
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  function rememberPseudo(p) {
+    try {
+      if (p && p.pseudo) localStorage.setItem(LOCAL_KEY, p.pseudo);
+      else localStorage.removeItem(LOCAL_KEY);
+    } catch (e) {}
+  }
+
+  function localPseudo() {
+    try {
+      return localStorage.getItem(LOCAL_KEY) || "";
+    } catch (e) {
+      return "";
+    }
   }
 
   function ensureUser() {
@@ -45,6 +61,7 @@
       .maybeSingle();
     if (res.error) throw res.error;
     profile = res.data;
+    rememberPseudo(profile);
     return profile;
   }
 
@@ -56,13 +73,18 @@
       .select("pseudo,sg")
       .single();
     if (res.error) {
+      var m = String(res.error.message || "");
       if (res.error.code === "23505") throw new Error("Ce pseudo est déjà pris.");
+      if (m.indexOf("interdit") !== -1) {
+        throw new Error("Ce pseudo n'est pas autorisé. Choisis-en un autre.");
+      }
       if (res.error.code === "23514") {
         throw new Error("Pseudo invalide : 3 à 16 caractères (lettres, chiffres, _).");
       }
       throw res.error;
     }
     profile = res.data;
+    rememberPseudo(profile);
     return profile;
   }
 
@@ -79,15 +101,12 @@
     return res.data;
   }
 
-  async function leaderboard() {
-    if (!client) return [];
-    var res = await client
-      .from("profiles")
-      .select("pseudo,sg")
-      .order("sg", { ascending: false })
-      .limit(50);
+  async function getLeaderboard(period) {
+    if (!client) throw new Error("Hors ligne");
+    await ensureUser();
+    var res = await client.rpc("get_leaderboard", { p_period: period || "all" });
     if (res.error) throw res.error;
-    return res.data || [];
+    return res.data;
   }
 
   async function getStats() {
@@ -212,10 +231,11 @@
   window.SamCloud = {
     available: function () { return !!client; },
     getProfile: function () { return profile; },
+    localPseudo: localPseudo,
     loadProfile: loadProfile,
     createProfile: createProfile,
     submitScore: submitScore,
-    leaderboard: leaderboard,
+    getLeaderboard: getLeaderboard,
     getStats: getStats,
     prepareDaily: prepareDaily,
     getDailySet: getDailySet,
