@@ -1,0 +1,66 @@
+/* sam quiz : barre de navigation du bas */
+
+#bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 12;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -6px 24px rgba(31, 36, 48, 0.08);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border: none;
+  border-radius: 14px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.nav-ico {
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.nav-item:active {
+  transform: scale(0.92);
+}
+
+.nav-item.active {
+  color: var(--primary-dark);
+  background: #eef0ff;
+}
+
+.nav-item.active .nav-ico {
+  transform: translateY(-2px) scale(1.12);
+}
+
+.chat-fab {
+  display: none !important;
+}
+
+#home-list {
+  scroll-margin-top: 90px;
+}
+
+#app {
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+}
