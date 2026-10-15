@@ -1,4 +1,4 @@
-/* sam quiz : ecran d'accueil */
+/* sam quiz : ecran d'accueil (liste compacte des matieres) */
 (function () {
   var listEl = document.getElementById("home-list");
   var fab = document.getElementById("btn-add-subject");
@@ -9,46 +9,52 @@
   var btnCancel = document.getElementById("btn-cancel-subject");
   var btnSave = document.getElementById("btn-save-subject");
 
+  var OFFICIAL = [
+    { id: "maths", name: "Mathématiques", icon: "📐", alias: ["mathematiques", "maths"] },
+    { id: "physique", name: "Physique-Chimie", icon: "⚗️", alias: ["physiquechimie", "physique"] },
+    { id: "svt", name: "SVT", icon: "🧬", alias: ["svt"] },
+    { id: "francais", name: "Français", icon: "📖", alias: ["francais"] },
+    { id: "anglais", name: "Anglais", icon: "🗣️", alias: ["anglais"] },
+    { id: "histgeo", name: "Histoire-Géographie", icon: "🌍", alias: ["histoiregeographie", "histoiregeo", "histgeo"] }
+  ];
+
   function esc(text) {
     var div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
   }
 
-  function norm(text) {
+  function key(text) {
     return String(text)
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .trim();
+      .replace(/[^a-z0-9]/g, "");
   }
 
-  function plural(n, word) {
-    return n + " " + word + (n > 1 ? "s" : "");
-  }
-
-  function bankFor(subject) {
-    var bank = window.SamBank || [];
-    var n = norm(subject.name);
-    for (var i = 0; i < bank.length; i++) {
-      if (norm(bank[i].name) === n) return bank[i];
+  function officialOf(name) {
+    var k = key(name);
+    for (var i = 0; i < OFFICIAL.length; i++) {
+      if (OFFICIAL[i].alias.indexOf(k) !== -1) return OFFICIAL[i];
     }
     return null;
   }
 
-  function countLabel(s) {
-    var b = bankFor(s);
-    if (b && b.levels) {
-      var total = s.questions.length;
-      var levels = 0;
-      [1, 2, 3].forEach(function (l) {
-        var n = (b.levels[l] || []).length;
-        if (n > 0) levels += 1;
-        total += n;
-      });
-      return plural(total, "question") + " · " + plural(levels, "niveau").replace("niveaus", "niveaux");
+  function hasBank(id) {
+    var bank = window.SamBank || [];
+    for (var i = 0; i < bank.length; i++) {
+      if (bank[i].id === id) return true;
     }
-    return plural(s.cards.length, "carte") + " · " + plural(s.questions.length, "question");
+    return false;
+  }
+
+  function progress(id) {
+    var P = window.SamProgress;
+    if (!P || !hasBank(id)) return null;
+    var best = [1, 2, 3].map(function (l) { return P.getBest(id, l); });
+    var sum = best.reduce(function (a, b) { return a + b; }, 0);
+    var ok = best.filter(function (b) { return b >= P.pass; }).length;
+    return { avg: Math.round(sum / 3), max: Math.max.apply(null, best), ok: ok };
   }
 
   function refreshCategories() {
@@ -59,45 +65,73 @@
     datalist.innerHTML = html;
   }
 
+  function row(o, s) {
+    var p = progress(o.id);
+    var sub = p
+      ? (p.max ? "Record " + p.max + " % · " + p.ok + "/3 niveaux validés" : "Pas encore joué")
+      : "Questions générées par l'IA";
+
+    var inner =
+      '<span class="mrow-ico">' + o.icon + "</span>" +
+      '<span class="mrow-txt"><span class="mrow-name">' + esc(o.name) + "</span>" +
+      '<span class="mrow-sub">' + esc(sub) + "</span></span>";
+
+    var head = s
+      ? '<button class="mrow-head" type="button" data-open="' + s.id + '">' + inner + "</button>"
+      : '<div class="mrow-head">' + inner + "</div>";
+
+    var bar = p ? '<div class="mrow-bar"><i style="width:' + p.avg + '%"></i></div>' : "";
+
+    var actions =
+      '<button class="mrow-btn main" type="button" data-inf="' + o.id + '">♾️ Illimité</button>' +
+      (s && hasBank(o.id)
+        ? '<button class="mrow-btn alt" type="button" data-levels="' + s.id + '">Niveaux</button>'
+        : "");
+
+    return '<div class="mrow">' + head + bar + '<div class="mrow-actions">' + actions + "</div></div>";
+  }
+
+  function extraRow(s) {
+    var inner =
+      '<span class="mrow-ico">📘</span>' +
+      '<span class="mrow-txt"><span class="mrow-name">' + esc(s.name) + "</span>" +
+      '<span class="mrow-sub">' + s.cards.length + " cartes · " + s.questions.length + " questions</span></span>";
+    return (
+      '<div class="mrow"><button class="mrow-head" type="button" data-open="' + s.id + '">' + inner + "</button>" +
+      '<div class="mrow-actions"><button class="mrow-btn alt" type="button" data-open="' + s.id + '">Ouvrir</button></div></div>'
+    );
+  }
+
   function render() {
     var subjects = window.SamStore.getSubjects();
+    var used = {};
+    var rows = "";
 
-    if (subjects.length === 0) {
-      listEl.innerHTML =
-        '<p class="empty">Aucune matière pour l\'instant.<br>' +
-        'Appuie sur « + Matière » pour commencer.</p>';
-      refreshCategories();
-      return;
-    }
-
-    var groups = {};
-    var order = [];
-    subjects.forEach(function (s) {
-      var cat = s.category || "Autres";
-      if (!groups[cat]) {
-        groups[cat] = [];
-        order.push(cat);
-      }
-      groups[cat].push(s);
-    });
-
-    var html = "";
-    order.forEach(function (cat) {
-      html += '<section class="category">';
-      html += '<h2 class="category-title">' + esc(cat) + "</h2>";
-      html += '<div class="subject-list">';
-      groups[cat].forEach(function (s) {
-        html +=
-          '<button class="subject-card" type="button" data-id="' + s.id + '">' +
-          '<span class="subject-name">' + esc(s.name) + "</span>" +
-          '<span class="subject-count">' + countLabel(s) + "</span>" +
-          "</button>";
+    OFFICIAL.forEach(function (o) {
+      var found = null;
+      subjects.forEach(function (s) {
+        if (officialOf(s.name) === o) {
+          found = s;
+          used[s.id] = true;
+        }
       });
-      html += "</div></section>";
+      rows += row(o, found);
     });
 
-    listEl.innerHTML = html;
+    subjects.forEach(function (s) {
+      if (!used[s.id]) rows += extraRow(s);
+    });
+
+    listEl.innerHTML = '<div class="mlist">' + rows + "</div>";
     refreshCategories();
+  }
+
+  function openInfini(id) {
+    var entry = document.querySelector(".inf-entry");
+    if (!entry) return;
+    entry.click();
+    var chip = document.querySelector('.inf-screen [data-sub="' + id + '"]');
+    if (chip) chip.click();
   }
 
   function openModal() {
@@ -123,11 +157,27 @@
   }
 
   listEl.addEventListener("click", function (e) {
-    var card = e.target.closest(".subject-card");
-    if (!card) return;
-    document.dispatchEvent(
-      new CustomEvent("samquiz:open-subject", { detail: { id: card.getAttribute("data-id") } })
-    );
+    var b = e.target.closest("[data-inf]");
+    if (b) {
+      openInfini(b.getAttribute("data-inf"));
+      return;
+    }
+    b = e.target.closest("[data-levels]");
+    if (b) {
+      document.dispatchEvent(
+        new CustomEvent("samquiz:start-mode", {
+          detail: { mode: "quiz", id: b.getAttribute("data-levels") },
+          cancelable: true
+        })
+      );
+      return;
+    }
+    b = e.target.closest("[data-open]");
+    if (b) {
+      document.dispatchEvent(
+        new CustomEvent("samquiz:open-subject", { detail: { id: b.getAttribute("data-open") } })
+      );
+    }
   });
 
   fab.addEventListener("click", openModal);
@@ -146,8 +196,6 @@
   });
 
   document.addEventListener("samquiz:show-home", render);
-
-  /* les banques de questions se chargent apres ce script : on redessine a la fin du chargement */
   window.addEventListener("load", render);
 
   render();
