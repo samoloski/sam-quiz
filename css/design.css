@@ -56,3 +56,20 @@
   font-size: 1rem;
   line-height: 1.6;
 }
+
+/* robot flottant plus petit et plus discret */
+.chat-fab {
+  width: 56px;
+  height: 56px;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+.chat-fab svg {
+  width: 38px;
+  height: 38px;
+}
+
+#app {
+  padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+}
