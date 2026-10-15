@@ -1,0 +1,287 @@
+/* sam quiz : style sobre et professionnel (charge en dernier) */
+
+:root {
+  --bg: #f6f7fb;
+  --ink: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+}
+
+/* barre du haut */
+#topbar {
+  background: #3730a3;
+  border-radius: 0;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+/* en-tete Samoloski AI */
+#ai-hub .hub-head {
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+#ai-hub .hub-logo {
+  width: 52px;
+  height: 52px;
+  animation: none;
+  filter: none;
+}
+
+#ai-hub .hub-title {
+  color: var(--ink);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+#ai-hub .hub-sub {
+  color: var(--muted);
+  opacity: 1;
+}
+
+/* progression : serie, rang, reussite */
+#hub-slot-top {
+  margin: 0 0 12px;
+  padding: 0;
+  background: none;
+}
+
+#hub-slot-top .stat-tiles {
+  margin-top: 0;
+}
+
+#hub-slot-top .stat-tile {
+  padding: 14px 6px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+#hub-slot-top .stat-tile b {
+  color: var(--ink);
+  font-size: 1.3rem;
+}
+
+#hub-slot-top .stat-tile span {
+  color: var(--muted);
+  opacity: 1;
+}
+
+#hub-slot-top .stat-hint {
+  color: var(--muted);
+  opacity: 1;
+}
+
+#hub-slot-top .stat-link {
+  border: 1px solid var(--accent);
+  background: #ffffff;
+  color: var(--accent);
+  border-radius: 12px;
+}
+
+#hub-slot-top .stat-link:active {
+  background: var(--accent-soft);
+}
+
+/* classement */
+#ai-hub .lb-card {
+  margin: 0 0 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+#ai-hub .lb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+#ai-hub .lb-all {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: #4338ca;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#ai-hub .lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  color: var(--ink);
+}
+
+#ai-hub .lb-row.me {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px #c7d2fe;
+}
+
+#ai-hub .lb-name {
+  flex: 1;
+  font-weight: 700;
+}
+
+#ai-hub .lb-sg {
+  font-weight: 800;
+  color: #4338ca;
+}
+
+#ai-hub .lb-note {
+  color: var(--muted);
+}
+
+#ai-hub .lb-skel {
+  height: 44px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: #eef0f4;
+}
+
+/* defis du jour : une seule carte blanche */
+#ai-hub .hub-label,
+#ai-hub .hub-hint,
+#ai-hub .hub-chips {
+  background: #ffffff;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+
+#ai-hub .hub-label {
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  border-radius: 14px 14px 0 0;
+  color: var(--ink);
+  font-size: 0.8rem;
+}
+
+#ai-hub .hub-hint {
+  color: var(--muted);
+  opacity: 1;
+}
+
+#ai-hub .hub-chips {
+  padding-bottom: 16px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0 0 14px 14px;
+}
+
+#ai-hub .hub-chip {
+  background: #f3f4f6;
+  color: var(--ink);
+  border: 1px solid transparent;
+}
+
+#ai-hub .hub-chip:active {
+  background: var(--accent-soft);
+  border-color: #c7d2fe;
+}
+
+/* boutons du bas de la carte */
+#hub-slot-bottom {
+  margin: 0 0 12px;
+  padding: 0;
+  background: none;
+}
+
+#hub-slot-bottom .chat-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#hub-slot-bottom .install-btn {
+  margin-top: 0;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: #4338ca;
+  box-shadow: none;
+  border-radius: 12px;
+}
+
+/* liste des matieres : grille de 2 colonnes */
+#home-list::before {
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.category-title {
+  color: var(--muted);
+}
+
+.subject-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.subject-card {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+
+.subject-card .subject-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  font-size: 1.2rem;
+}
+
+.subject-card .subject-name {
+  flex: none;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.subject-card .subject-count {
+  background: #f3f4f6;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: normal;
+}
+
+@media (hover: hover) {
+  .subject-card:hover {
+    transform: none;
+    box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  }
+}
