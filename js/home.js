@@ -15,11 +15,39 @@
     return div.innerHTML;
   }
 
+  function norm(text) {
+    return String(text)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  }
+
   function plural(n, word) {
     return n + " " + word + (n > 1 ? "s" : "");
   }
 
+  function bankFor(subject) {
+    var bank = window.SamBank || [];
+    var n = norm(subject.name);
+    for (var i = 0; i < bank.length; i++) {
+      if (norm(bank[i].name) === n) return bank[i];
+    }
+    return null;
+  }
+
   function countLabel(s) {
+    var b = bankFor(s);
+    if (b && b.levels) {
+      var total = s.questions.length;
+      var levels = 0;
+      [1, 2, 3].forEach(function (l) {
+        var n = (b.levels[l] || []).length;
+        if (n > 0) levels += 1;
+        total += n;
+      });
+      return plural(total, "question") + " · " + plural(levels, "niveau").replace("niveaus", "niveaux");
+    }
     return plural(s.cards.length, "carte") + " · " + plural(s.questions.length, "question");
   }
 
@@ -118,6 +146,9 @@
   });
 
   document.addEventListener("samquiz:show-home", render);
+
+  /* les banques de questions se chargent apres ce script : on redessine a la fin du chargement */
+  window.addEventListener("load", render);
 
   render();
 })();

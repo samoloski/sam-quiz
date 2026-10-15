@@ -1,5 +1,5 @@
 /* sam quiz : service worker (mode hors ligne) - change le numero de version quand tu ajoutes des fichiers */
-const CACHE = "samquiz-v8";
+const CACHE = "samquiz-v9";
 
 const FILES = [
   "/",
