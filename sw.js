@@ -19,6 +19,8 @@ const FILES = [
   "/css/home.css",
   "/css/nav.css",
   "/css/pro.css",
+  "/css/infini.css",
+  "/js/infini.js",
   "/js/nav.js",
   "/css/rankhub.css",
   "/css/chat.css",
