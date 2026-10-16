@@ -45,6 +45,8 @@ const FILES = [
   "/data/physique.js",
   "/data/svt.js",
   "/data/francais.js",
+  "/data/anglais.js",
+  "/data/histgeo.js",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-maskable-512.png",
