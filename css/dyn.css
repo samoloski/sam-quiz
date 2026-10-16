@@ -1,0 +1,7 @@
+/* sam quiz : ecran d'attente des questions generees */
+.dyn-load { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 20px; background: rgba(15, 18, 40, 0.55); animation: fadeIn 0.2s ease both; }
+.dyn-load[hidden] { display: none; }
+.dyn-card { width: 100%; max-width: 360px; padding: 26px 20px 20px; border-radius: 16px; background: #fff; color: var(--ink, #111827); text-align: center; }
+.dyn-card strong { display: block; font-size: 1.02rem; }
+.dyn-card small { display: block; margin-top: 6px; color: var(--muted, #6b7280); line-height: 1.5; }
+.dyn-skip { margin-top: 18px; width: 100%; padding: 12px 14px; border: 1px solid var(--line, #e5e7eb); border-radius: 12px; background: #fff; color: #3730a3; font: inherit; font-weight: 700; cursor: pointer; }
