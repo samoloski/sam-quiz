@@ -1,0 +1,59 @@
+/* sam quiz : bloc de bienvenue */
+.wl-card {
+  margin: 0 0 12px;
+  padding: 20px 16px 18px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 14px;
+  background: #ffffff;
+  text-align: center;
+  animation: fadeUp 0.5s ease both;
+}
+
+.wl-hello {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted, #6b7280);
+}
+
+.wl-name {
+  display: none;
+  margin: 6px 0 2px;
+  font-family: "Pacifico", "Dancing Script", "Brush Script MT", cursive;
+  font-weight: 400;
+  font-size: clamp(1.9rem, 9vw, 2.6rem);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  background: linear-gradient(90deg, #3730a3, #7c3aed, #0ea5e9, #3730a3);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: wlShine 6s linear infinite;
+}
+
+.wl-card.has-name .wl-name {
+  display: block;
+}
+
+.wl-name.pop {
+  animation: wlPop 0.8s cubic-bezier(0.2, 1.3, 0.3, 1) both, wlShine 6s linear 0.8s infinite;
+}
+
+.wl-sub {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted, #6b7280);
+}
+
+@keyframes wlShine {
+  to { background-position: 200% 0; }
+}
+
+@keyframes wlPop {
+  0% { opacity: 0; transform: translateY(14px) scale(0.9); }
+  100% { opacity: 1; transform: none; }
+}

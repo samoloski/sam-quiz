@@ -23,6 +23,8 @@ const FILES = [
   "/css/matieres.css",
   "/css/dyn.css",
   "/css/badges.css",
+  "/css/welcome.css",
+  "/js/welcome.js",
   "/js/badges.js",
   "/js/dyn.js",
   "/js/infini.js",
