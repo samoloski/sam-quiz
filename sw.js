@@ -22,6 +22,8 @@ const FILES = [
   "/css/infini.css",
   "/css/matieres.css",
   "/css/dyn.css",
+  "/css/badges.css",
+  "/js/badges.js",
   "/js/dyn.js",
   "/js/infini.js",
   "/js/nav.js",
