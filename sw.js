@@ -24,6 +24,8 @@ const FILES = [
   "/css/dyn.css",
   "/css/badges.css",
   "/css/welcome.css",
+  "/css/dark.css",
+  "/js/theme.js",
   "/js/welcome.js",
   "/js/badges.js",
   "/js/dyn.js",
