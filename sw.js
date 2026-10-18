@@ -1,5 +1,5 @@
 /* sam quiz : service worker (mode hors ligne) - change le numero de version quand tu ajoutes des fichiers */
-const CACHE = "samquiz-v20";
+const CACHE = "samquiz-v21";
 
 const FILES = [
   "/",
@@ -27,6 +27,7 @@ const FILES = [
   "/css/dark.css",
   "/js/theme.js",
   "/js/welcome.js",
+  "/js/retour.js",
   "/js/badges.js",
   "/js/dyn.js",
   "/js/infini.js",
