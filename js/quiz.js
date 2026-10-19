@@ -322,7 +322,7 @@
       return;
     }
     if (e.target.closest("#qz-replay")) {
-      start(run.opts);
+      window.SamQuiz.start(run.opts);
       return;
     }
     if (e.target.closest("#qz-close") || e.target.closest("#qz-quit")) {
