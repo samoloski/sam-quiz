@@ -1,10 +1,11 @@
-/* sam quiz : duel en direct (code a 5 lettres, temps reel Supabase) */
+/* sam quiz : duel en direct (code a 5 lettres, temps reel Supabase, chat) */
 (function () {
   var Q = window.SamQuiz;
   var cfg = window.SAMQUIZ_CONFIG || {};
   if (!Q || !Q.start) return;
 
   var LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var EMOJIS = ["👏", "🔥", "😱", "😂"];
   var S = null;
   var overlay = null;
   var pill = null;
@@ -50,6 +51,16 @@
       overlay.className = "modal";
       overlay.style.zIndex = "2147483600";
       overlay.addEventListener("click", onClick);
+      overlay.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter") return;
+        if (e.target.id === "dl-msg") {
+          e.preventDefault();
+          sendChat();
+        } else if (e.target.id === "dl-code") {
+          e.preventDefault();
+          joinRoom();
+        }
+      });
       document.body.appendChild(overlay);
     }
     overlay.hidden = false;
@@ -70,6 +81,7 @@
     if (S) {
       if (S.joinTimer) clearTimeout(S.joinTimer);
       if (S.resend) clearInterval(S.resend);
+      if (S.reactTimer) clearTimeout(S.reactTimer);
       if (S.client && S.ch) {
         try { S.client.removeChannel(S.ch); } catch (e) {}
       }
@@ -131,6 +143,49 @@
     );
   }
 
+  /* ---------- chat ---------- */
+
+  function chatBlock() {
+    return (
+      "<div id='dl-log' style='height:150px;overflow-y:auto;margin:10px 0;padding:8px;border-radius:10px;" +
+      "border:1px solid rgba(128,128,128,.3);font-size:14px;text-align:left'></div>" +
+      "<div style='display:flex;gap:8px'>" +
+      "<input id='dl-msg' maxlength='120' placeholder='Écris un message…' autocomplete='off' " +
+      "style='flex:1;min-width:0;box-sizing:border-box;padding:10px;font-size:16px;border-radius:10px' />" +
+      "<button class='btn btn-primary' id='dl-sendmsg' type='button'>➤</button></div>"
+    );
+  }
+
+  function renderLog() {
+    var box = document.getElementById("dl-log");
+    if (!box || !S) return;
+    var html = "";
+    if (!S.log.length) {
+      html = "<div style='opacity:.6'>Dis bonjour à " + esc(S.opp) + " 👋</div>";
+    }
+    S.log.forEach(function (x) {
+      html += "<div style='margin:3px 0'><strong>" + (x.me ? "Toi" : esc(x.n)) + " :</strong> " + esc(x.m) + "</div>";
+    });
+    box.innerHTML = html;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function sendChat() {
+    var input = document.getElementById("dl-msg");
+    if (!input || !S) return;
+    var text = input.value.trim().slice(0, 120);
+    if (!text) return;
+    var now = Date.now();
+    if (now - S.lastSend < 800) return;
+    S.lastSend = now;
+    S.log.push({ me: true, n: "Toi", m: text });
+    if (S.log.length > 200) S.log.shift();
+    send({ k: "chat", n: myName(), m: text });
+    input.value = "";
+    renderLog();
+    input.focus();
+  }
+
   /* ---------- connexion temps reel ---------- */
 
   function connect(code, fields, onOpen) {
@@ -164,10 +219,15 @@
       l: fields.l || 0,
       seed: fields.seed || 0,
       opp: "Ton ami",
+      oppKnown: false,
       oppProg: 0,
       oppDone: null,
       mine: null,
-      t0: 0
+      t0: 0,
+      log: [],
+      lastSend: 0,
+      lastReact: 0,
+      reactTxt: ""
     };
     S = me;
     var ch = client.channel("duel-" + code, { config: { broadcast: { self: false } } });
@@ -222,6 +282,17 @@
     );
   }
 
+  function shareCode() {
+    if (!S) return;
+    var text = "⚔️ " + myName() + " te défie en direct sur sam quiz ! Ouvre " + location.origin +
+      " , touche ⚔️ Duel, puis « Rejoindre » et entre le code : " + S.code;
+    if (navigator.share) {
+      navigator.share({ text: text }).catch(function () {});
+    } else {
+      window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
+    }
+  }
+
   function copyCode(btn) {
     if (!S) return;
     var code = S.code;
@@ -247,17 +318,6 @@
     }
   }
 
-  function shareCode() {
-    if (!S) return;
-    var text = "⚔️ " + myName() + " te défie en direct sur sam quiz ! Ouvre " + location.origin +
-      " , touche ⚔️ Duel, puis « Rejoindre » et entre le code : " + S.code;
-    if (navigator.share) {
-      navigator.share({ text: text }).catch(function () {});
-    } else {
-      window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank");
-    }
-  }
-
   function joinRoom() {
     var input = document.getElementById("dl-code");
     var code = input ? input.value.toUpperCase().replace(/[^A-Z0-9]/g, "") : "";
@@ -269,18 +329,52 @@
     connect(code, { role: "guest", state: "joining" }, function () {
       if (!S) return;
       send({ k: "join", n: myName() });
-      openOverlay(
-        "<h2>Connecté</h2><p>En attente du départ…</p>" +
-        "<div " + BTN_COL + "><button class='btn btn-secondary btn-block' id='dl-close' type='button'>Annuler</button></div>"
-      );
+      showLobby();
       var me = S;
       me.joinTimer = setTimeout(function () {
-        if (S === me && me.state === "joining") {
+        if (S === me && me.state === "joining" && !me.oppKnown) {
           stopAll();
           showMessage("Duel introuvable", "Vérifie le code, ou demande à ton ami d'en créer un nouveau.");
         }
       }, 12000);
     });
+  }
+
+  /* salon d'attente avec chat */
+  function showLobby() {
+    if (!S) return;
+    if (S.role === "host") {
+      openOverlay(
+        "<h2>⚔️ " + esc(S.opp) + " a rejoint !</h2>" +
+        "<p>" + esc(S.b.name) + " · Niveau " + S.l + "</p>" +
+        chatBlock() +
+        "<div " + BTN_COL + ">" +
+        "<button class='btn btn-primary btn-block' id='dl-start' type='button'>🚀 Lancer la partie</button>" +
+        "<button class='btn btn-secondary btn-block' id='dl-close' type='button'>Annuler</button>" +
+        "</div>"
+      );
+      renderLog();
+    } else if (!S.oppKnown) {
+      openOverlay(
+        "<h2>Connecté</h2><p>Recherche du duel…</p>" +
+        "<div " + BTN_COL + "><button class='btn btn-secondary btn-block' id='dl-close' type='button'>Annuler</button></div>"
+      );
+    } else {
+      openOverlay(
+        "<h2>⚔️ Duel avec " + esc(S.opp) + "</h2>" +
+        "<p>En attente du départ…</p>" +
+        chatBlock() +
+        "<div " + BTN_COL + "><button class='btn btn-secondary btn-block' id='dl-close' type='button'>Annuler</button></div>"
+      );
+      renderLog();
+    }
+  }
+
+  function startGame() {
+    if (!S || S.role !== "host" || S.state !== "ready") return;
+    S.state = "starting";
+    send({ k: "start", b: S.b.id, l: S.l, s: S.seed, n: myName() });
+    countdown();
   }
 
   /* ---------- messages ---------- */
@@ -289,9 +383,15 @@
     if (!S) return;
     if (m.k === "join" && S.role === "host" && S.state === "waiting") {
       S.opp = String(m.n || "Ton ami").slice(0, 20);
-      S.state = "starting";
-      send({ k: "start", b: S.b.id, l: S.l, s: S.seed, n: myName() });
-      countdown();
+      S.oppKnown = true;
+      S.state = "ready";
+      send({ k: "hello", n: myName() });
+      showLobby();
+    } else if (m.k === "hello" && S.role === "guest" && S.state === "joining") {
+      if (S.joinTimer) clearTimeout(S.joinTimer);
+      S.opp = String(m.n || "Ton ami").slice(0, 20);
+      S.oppKnown = true;
+      showLobby();
     } else if (m.k === "start" && S.role === "guest" && S.state === "joining") {
       var b = bankById(m.b);
       var l = parseInt(m.l, 10);
@@ -305,9 +405,18 @@
       S.b = b;
       S.l = l;
       S.seed = s;
-      S.opp = String(m.n || "Ton ami").slice(0, 20);
+      S.opp = String(m.n || S.opp).slice(0, 20);
+      S.oppKnown = true;
       S.state = "starting";
       countdown();
+    } else if (m.k === "chat") {
+      var txt = String(m.m || "").trim().slice(0, 120);
+      if (!txt) return;
+      S.log.push({ me: false, n: String(m.n || S.opp).slice(0, 20), m: txt });
+      if (S.log.length > 200) S.log.shift();
+      renderLog();
+    } else if (m.k === "react") {
+      if (EMOJIS.indexOf(m.e) !== -1) flashReact(S.opp + " : " + m.e);
     } else if (m.k === "prog") {
       S.oppProg = parseInt(m.n, 10) || 0;
       updatePill();
@@ -362,18 +471,55 @@
     watchProgress();
   }
 
+  /* bulle du haut : progression de l'adversaire + reactions rapides */
   function makePill() {
     pill = document.createElement("div");
     pill.style.cssText =
       "position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:2147483000;" +
       "background:#4f46e5;color:#fff;padding:5px 14px;border-radius:999px;" +
+      "display:flex;align-items:center;gap:10px;white-space:nowrap;" +
       "font:600 13px system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.3)";
+    pill.innerHTML =
+      "<span id='dl-pilltxt'></span>" +
+      EMOJIS.map(function (e) {
+        return "<button type='button' data-em='" + e + "' style='background:none;border:0;padding:0;" +
+          "font-size:17px;line-height:1;cursor:pointer'>" + e + "</button>";
+      }).join("");
+    pill.addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-em]");
+      if (b) sendReact(b.getAttribute("data-em"));
+    });
     document.body.appendChild(pill);
     updatePill();
   }
 
   function updatePill() {
-    if (pill && S) pill.textContent = "⚔️ " + S.opp + " : " + S.oppProg + "/10";
+    var t = document.getElementById("dl-pilltxt");
+    if (!t || !S) return;
+    t.textContent = S.reactTxt ? "⚔️ " + S.reactTxt : "⚔️ " + S.opp + " : " + S.oppProg + "/10";
+  }
+
+  function flashReact(text) {
+    if (!S) return;
+    S.reactTxt = text;
+    updatePill();
+    if (S.reactTimer) clearTimeout(S.reactTimer);
+    var me = S;
+    me.reactTimer = setTimeout(function () {
+      if (S === me) {
+        me.reactTxt = "";
+        updatePill();
+      }
+    }, 2500);
+  }
+
+  function sendReact(em) {
+    if (!S || EMOJIS.indexOf(em) === -1) return;
+    var now = Date.now();
+    if (now - S.lastReact < 1500) return;
+    S.lastReact = now;
+    send({ k: "react", e: em });
+    flashReact("Toi : " + em);
   }
 
   function watchProgress() {
@@ -447,8 +593,10 @@
       "<h2>" + verdict + "</h2>" +
       "<p>Toi : <strong>" + me.c + " / " + me.t + "</strong> en " + secs(me.ms) + "<br>" +
       esc(S.opp) + " : <strong>" + o.c + " / " + o.t + "</strong> en " + secs(o.ms) + "</p>" +
+      chatBlock() +
       "<div " + BTN_COL + "><button class='btn btn-primary btn-block' id='dl-close' type='button'>Fermer</button></div>"
     );
+    renderLog();
   }
 
   /* ---------- clics ---------- */
@@ -469,6 +617,10 @@
       showMenu();
     } else if (id === "dl-go") {
       joinRoom();
+    } else if (id === "dl-start") {
+      startGame();
+    } else if (id === "dl-sendmsg") {
+      sendChat();
     } else if (id === "dl-copy") {
       copyCode(btn);
     } else if (id === "dl-share") {
