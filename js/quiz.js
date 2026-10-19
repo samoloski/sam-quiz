@@ -1,4 +1,4 @@
-/* sam quiz : moteur de quiz QCM */
+/* sam quiz : moteur de quiz QCM (avec compte à rebours et anti-triche pour les niveaux) */
 (function () {
   var root = document.createElement("div");
   root.className = "quiz-screen";
@@ -6,6 +6,19 @@
   document.body.appendChild(root);
 
   var run = null;
+  var timer = null;
+
+  /* ---- style du chrono (ajouté ici pour ne pas créer de nouveau fichier) ---- */
+  var st = document.createElement("style");
+  st.textContent =
+    ".quiz-timer{display:flex;align-items:center;gap:10px;margin:0 0 14px}" +
+    ".quiz-timer-track{flex:1;height:10px;border-radius:99px;background:rgba(127,127,127,.25);overflow:hidden}" +
+    ".quiz-timer-bar{height:100%;width:100%;border-radius:99px;background:#2563eb;transition:background .2s}" +
+    ".quiz-timer.low .quiz-timer-bar{background:#dc2626}" +
+    ".quiz-timer-num{min-width:46px;text-align:right;font-weight:800;font-size:1rem}" +
+    ".quiz-timer.low .quiz-timer-num{color:#dc2626}" +
+    ".quiz-warn{margin:0 0 14px;padding:12px 14px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:700;font-size:.9rem}";
+  document.head.appendChild(st);
 
   function esc(text) {
     var div = document.createElement("div");
@@ -43,6 +56,45 @@
     return sg;
   }
 
+  /* secondes par question selon le niveau (0 = pas de chrono) */
+  function secondsFor(level) {
+    if (!level) return 0;
+    if (level === 1) return 30;
+    if (level === 2) return 40;
+    return 50;
+  }
+
+  function stopTimer() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function tick() {
+    if (!run || run.locked || !run.deadline) return;
+    var left = Math.max(0, run.deadline - Date.now());
+    var secs = Math.ceil(left / 1000);
+    var bar = document.getElementById("qz-tbar");
+    var num = document.getElementById("qz-tnum");
+    var box = document.getElementById("qz-timer");
+    if (bar) bar.style.width = Math.round((left / (run.secs * 1000)) * 100) + "%";
+    if (num) num.textContent = secs + " s";
+    if (box) box.classList.toggle("low", secs <= 5);
+    if (left <= 0) {
+      stopTimer();
+      answer(-1, "time");
+    }
+  }
+
+  function startTimer() {
+    stopTimer();
+    if (!run || !run.secs) return;
+    run.deadline = Date.now() + run.secs * 1000;
+    tick();
+    timer = setInterval(tick, 200);
+  }
+
   function topBar(pct, count) {
     return (
       '<div class="quiz-top">' +
@@ -60,6 +112,13 @@
     var html = topBar(pct, run.index + 1 + "/" + total);
 
     html += '<div class="quiz-body">';
+    if (run.secs) {
+      html +=
+        '<div class="quiz-timer" id="qz-timer">' +
+        '<div class="quiz-timer-track"><div class="quiz-timer-bar" id="qz-tbar"></div></div>' +
+        '<span class="quiz-timer-num" id="qz-tnum">' + run.secs + " s</span></div>";
+      html += '<div id="qz-warn"></div>';
+    }
     html +=
       '<span class="chip">' + esc(run.title) +
       (run.level ? " · Niveau " + run.level : "") + "</span>";
@@ -75,11 +134,13 @@
 
     root.innerHTML = html;
     root.scrollTop = 0;
+    startTimer();
   }
 
-  function answer(i) {
+  function answer(i, why) {
     if (!run || run.locked) return;
     run.locked = true;
+    stopTimer();
 
     var total = run.items.length;
     var item = run.items[run.index];
@@ -95,11 +156,17 @@
     var bar = root.querySelector(".quiz-progress-bar");
     if (bar) bar.style.width = Math.round(((run.index + 1) / total) * 100) + "%";
 
+    var title =
+      ok ? "✔ Bonne réponse" :
+      why === "time" ? "⏱ Temps écoulé" :
+      why === "leave" ? "🚫 Tu as quitté l'écran du quiz" :
+      "✘ Mauvaise réponse";
+
     var last = run.index === total - 1;
     var fb = document.getElementById("qz-feedback");
     fb.innerHTML =
       '<div class="quiz-feedback ' + (ok ? "ok" : "ko") + '">' +
-      "<strong>" + (ok ? "✔ Bonne réponse" : "✘ Mauvaise réponse") + "</strong>" +
+      "<strong>" + title + "</strong>" +
       (item.e ? "<p>" + esc(item.e) + "</p>" : "") +
       "</div>" +
       '<button class="btn btn-primary btn-block" id="qz-next" type="button">' +
@@ -126,6 +193,7 @@
   }
 
   function finish() {
+    stopTimer();
     var total = run.items.length;
     var sg = computeSG(run.correct, total, run.level, run.rewarded);
     var ratio = total ? run.correct / total : 0;
@@ -178,6 +246,7 @@
   }
 
   function start(opts) {
+    stopTimer();
     var items = prepare(opts.questions || []).slice(0, opts.limit || 10);
     run = {
       title: opts.title || "Quiz",
@@ -188,6 +257,10 @@
       index: 0,
       correct: 0,
       locked: false,
+      secs: secondsFor(opts.level || 0),
+      deadline: 0,
+      away: false,
+      leaves: 0,
       opts: opts
     };
     root.hidden = false;
@@ -200,6 +273,7 @@
   }
 
   function hide() {
+    stopTimer();
     root.hidden = true;
     root.innerHTML = "";
     run = null;
@@ -210,6 +284,29 @@
     if (history.state && history.state.screen === "quiz") history.back();
     else hide();
   }
+
+  /* ---- anti-triche : sortie de l'écran du quiz ---- */
+  document.addEventListener("visibilitychange", function () {
+    if (!run || !run.secs || root.hidden) return;
+    if (document.hidden) {
+      run.away = !run.locked;
+      return;
+    }
+    if (!run.away) {
+      tick();
+      return;
+    }
+    run.away = false;
+    run.leaves += 1;
+    if (run.locked) return;
+    if (run.leaves === 1) {
+      var w = document.getElementById("qz-warn");
+      if (w) w.innerHTML = '<div class="quiz-warn">⚠️ Reste sur l\'écran du quiz. La prochaine sortie comptera la question comme fausse.</div>';
+      tick();
+    } else {
+      answer(-1, "leave");
+    }
+  });
 
   root.addEventListener("click", function (e) {
     var choice = e.target.closest(".quiz-choice");
