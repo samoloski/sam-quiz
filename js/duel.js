@@ -107,6 +107,7 @@
   /* bouton sur l'ecran de resultat */
   document.addEventListener("samquiz:quiz-finished", function (e) {
     var d = e.detail || {};
+    if (activeDuel && activeDuel.live) return;
     if (!last || d.subjectId !== last.b || d.level !== last.l) return;
     var actions = document.querySelector(".quiz-result-actions");
     if (!actions || !actions.parentNode) return;
