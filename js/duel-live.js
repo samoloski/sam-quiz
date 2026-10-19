@@ -216,9 +216,35 @@
       "<p style='text-align:center'>En attente de ton ami…</p>" +
       "<div " + BTN_COL + ">" +
       "<button class='btn btn-primary btn-block' id='dl-share' type='button'>Envoyer le code</button>" +
+      "<button class='btn btn-secondary btn-block' id='dl-copy' type='button'>Copier le code</button>" +
       "<button class='btn btn-secondary btn-block' id='dl-close' type='button'>Annuler</button>" +
       "</div>"
     );
+  }
+
+  function copyCode(btn) {
+    if (!S) return;
+    var code = S.code;
+    function done() {
+      btn.textContent = "✅ Code copié";
+      setTimeout(function () { btn.textContent = "Copier le code"; }, 2000);
+    }
+    function fallback() {
+      var t = document.createElement("textarea");
+      t.value = code;
+      t.style.position = "fixed";
+      t.style.opacity = "0";
+      document.body.appendChild(t);
+      t.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(t);
+      done();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(done, fallback);
+    } else {
+      fallback();
+    }
   }
 
   function shareCode() {
@@ -443,6 +469,8 @@
       showMenu();
     } else if (id === "dl-go") {
       joinRoom();
+    } else if (id === "dl-copy") {
+      copyCode(btn);
     } else if (id === "dl-share") {
       shareCode();
     } else if (btn.hasAttribute("data-lv")) {
