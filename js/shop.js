@@ -1,54 +1,89 @@
 /* sam quiz : boutique (on l'ouvre en touchant la pastille SG du haut) */
 (function () {
   var LS_KEY = "samquiz:shop";
+  var DEFAULT_BG = "linear-gradient(135deg,#1e3a8a,#3b82f6)";
 
   var BGS = [
-    { id: "bg_ocean", name: "Océan", price: 300, css: "linear-gradient(135deg,#0ea5e9,#1d4ed8)" },
-    { id: "bg_sunset", name: "Coucher de soleil", price: 300, css: "linear-gradient(135deg,#f97316,#db2777)" },
-    { id: "bg_forest", name: "Forêt", price: 300, css: "linear-gradient(135deg,#16a34a,#065f46)" },
-    { id: "bg_night", name: "Nuit étoilée", price: 400, css: "linear-gradient(135deg,#4338ca,#0f172a)" },
-    { id: "bg_gold", name: "Or royal", price: 600, css: "linear-gradient(135deg,#f59e0b,#b45309)" }
+    { id: "bg_ocean", name: "Océan", price: 300, rar: "common", css: "linear-gradient(135deg,#0ea5e9,#1d4ed8)" },
+    { id: "bg_sunset", name: "Coucher de soleil", price: 300, rar: "common", css: "linear-gradient(135deg,#f97316,#db2777)" },
+    { id: "bg_forest", name: "Forêt", price: 300, rar: "common", css: "linear-gradient(135deg,#16a34a,#065f46)" },
+    { id: "bg_night", name: "Nuit étoilée", price: 400, rar: "rare", css: "linear-gradient(135deg,#4338ca,#0f172a)" },
+    { id: "bg_gold", name: "Or royal", price: 600, rar: "leg", css: "linear-gradient(135deg,#f59e0b,#b45309)" }
   ];
   var FXS = [
-    { id: "name_glow", name: "Lueur", price: 400, fx: "glow" },
-    { id: "name_rainbow", name: "Arc-en-ciel", price: 500, fx: "rainbow" }
+    { id: "name_glow", name: "Lueur", price: 400, rar: "rare", fx: "glow" },
+    { id: "name_rainbow", name: "Arc-en-ciel", price: 500, rar: "epic", fx: "rainbow" }
   ];
   var PACKS = [
-    { id: "ai_5", name: "+5 messages IA", price: 150 },
-    { id: "ai_20", name: "+20 messages IA", price: 500 }
+    { id: "ai_5", name: "5 messages IA", n: 5, price: 150, rar: "common" },
+    { id: "ai_20", name: "20 messages IA", n: 20, price: 500, rar: "leg", best: true }
   ];
+  var RAR = { common: "Commun", rare: "Rare", epic: "Épique", leg: "Légendaire" };
 
-  var css =
-    ".sg-pill{cursor:pointer}" +
-    "#shop-page{position:fixed;top:0;right:0;bottom:0;left:0;z-index:1800;overflow-y:auto;-webkit-overflow-scrolling:touch}" +
-    "#shop-page[hidden]{display:none}" +
-    ".shop-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:14px 16px;" +
-    "background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff}" +
-    ".shop-top h2{margin:0;font-size:20px;color:#fff}" +
-    ".shop-back{background:rgba(255,255,255,.2);border:0;color:#fff;font-size:20px;width:38px;height:38px;border-radius:12px;cursor:pointer}" +
-    ".shop-body{padding:16px;max-width:560px;margin:0 auto}" +
-    ".shop-bal{text-align:center;padding:16px;border-radius:16px;background:rgba(128,128,128,.14);margin-bottom:18px}" +
-    ".shop-bal-n{font-size:34px;font-weight:800}" +
-    ".shop-bal small{display:block;opacity:.7;margin-top:6px}" +
-    ".shop-body h3{margin:22px 0 4px;font-size:18px}" +
-    ".shop-body h4{margin:14px 0 8px;font-size:14px;opacity:.75;font-weight:600}" +
-    ".shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}" +
-    ".shop-card{padding:10px;border-radius:14px;background:rgba(128,128,128,.12);display:flex;flex-direction:column;gap:8px}" +
-    ".shop-sw{height:58px;border-radius:10px}" +
-    ".shop-fxbox{height:58px;border-radius:10px;background:#1e1b4b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800}" +
-    ".shop-name{font-weight:700;font-size:14px}" +
-    ".shop-btn{padding:9px 6px !important;font-size:14px !important}" +
-    ".shop-low{opacity:.55}" +
-    ".shop-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:rgba(128,128,128,.12);margin-bottom:10px}" +
-    ".shop-row .shop-name{flex:1;font-size:15px}" +
-    ".shop-row .shop-btn{width:auto;min-width:96px}" +
-    ".shop-note{opacity:.75;font-size:14px;margin:6px 0}" +
-    ".shop-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:2000;background:#111827;color:#fff;" +
-    "padding:10px 16px;border-radius:12px;font-size:14px;max-width:86%;text-align:center}" +
-    ".wl-name.fx-glow,.shop-fx.fx-glow{text-shadow:0 0 8px #fff,0 0 20px #a78bfa,0 0 34px #7c3aed !important}" +
-    ".wl-name.fx-rainbow,.shop-fx.fx-rainbow{background:linear-gradient(90deg,#ef4444,#f59e0b,#16a34a,#3b82f6,#a855f7) !important;" +
-    "-webkit-background-clip:text !important;background-clip:text !important;" +
-    "-webkit-text-fill-color:transparent !important;color:transparent !important}";
+  var css = [
+    ".sg-pill{cursor:pointer}",
+    "#shop-page{position:fixed;top:0;right:0;bottom:0;left:0;z-index:1800;overflow-y:auto;-webkit-overflow-scrolling:touch}",
+    "#shop-page[hidden]{display:none}",
+    ".shop-top{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff}",
+    ".shop-top h2{margin:0;font-size:20px;color:#fff}",
+    ".shop-back{background:rgba(255,255,255,.2);border:0;color:#fff;font-size:20px;width:38px;height:38px;border-radius:12px;cursor:pointer}",
+    ".shop-hero{padding:18px 16px 22px;text-align:center;color:#fff;background:linear-gradient(160deg,#4c1d95,#1e1b4b);border-radius:0 0 26px 26px}",
+    ".shop-bal-n{font-size:44px;font-weight:800;line-height:1.1;text-shadow:0 2px 14px rgba(251,191,36,.45)}",
+    ".shop-bal-n span{display:inline-block;animation:shopSpin 3.2s ease-in-out infinite}",
+    ".shop-bal-l{opacity:.85;margin-top:2px}",
+    ".shop-goal{margin:14px auto 0;max-width:340px;font-size:14px}",
+    ".shop-goal b{color:#fde68a}",
+    ".shop-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.2);margin-top:7px;overflow:hidden}",
+    ".shop-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#fbbf24,#f59e0b);transition:width .6s}",
+    ".shop-hero small{display:block;opacity:.7;margin-top:12px;font-size:12px}",
+    ".shop-tabs{position:sticky;top:66px;z-index:2;display:flex;gap:8px;padding:12px 16px;overflow-x:auto;background:var(--shop-bg,#fff)}",
+    ".shop-tab{flex:0 0 auto;border:0;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;background:rgba(128,128,128,.18);color:inherit}",
+    ".shop-tab.on{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.4)}",
+    ".shop-body{padding:4px 16px 40px;max-width:560px;margin:0 auto}",
+    ".shop-body h3{margin:10px 0 4px;font-size:17px}",
+    ".shop-note{opacity:.75;font-size:14px;margin:4px 0 10px}",
+    ".shop-prev{border-radius:20px;padding:22px 16px;text-align:center;color:#fff;margin:6px 0 4px;box-shadow:0 8px 22px rgba(0,0,0,.25)}",
+    ".shop-prev-h{font-size:12px;letter-spacing:.3em;font-weight:700;opacity:.85}",
+    ".shop-prev-n{font-size:34px;font-weight:800;margin:6px 0 2px;word-break:break-word}",
+    ".shop-prev-s{font-size:13px;opacity:.9}",
+    ".shop-prevlab{font-size:12px;opacity:.65;text-align:center;margin-bottom:12px}",
+    ".shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}",
+    ".shop-card{position:relative;overflow:hidden;padding:10px;border-radius:16px;background:rgba(128,128,128,.12);display:flex;flex-direction:column;gap:8px;border:2px solid transparent;cursor:pointer}",
+    ".shop-card.sel{outline:3px solid rgba(124,58,237,.55)}",
+    ".shop-card.r-common{border-color:#94a3b8}",
+    ".shop-card.r-rare{border-color:#3b82f6}",
+    ".shop-card.r-epic{border-color:#a855f7}",
+    ".shop-card.r-leg{border-color:#f59e0b;box-shadow:0 0 16px rgba(245,158,11,.5)}",
+    ".shop-card.r-leg::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);animation:shopShine 2.8s linear infinite;pointer-events:none}",
+    ".shop-rar{position:absolute;top:6px;left:6px;z-index:2;font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;color:#fff;background:#64748b}",
+    ".r-rare .shop-rar{background:#3b82f6}.r-epic .shop-rar{background:#a855f7}.r-leg .shop-rar{background:linear-gradient(135deg,#f59e0b,#ef4444)}",
+    ".shop-mini{height:74px;border-radius:11px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px;color:#fff;font-weight:800;font-size:15px}",
+    ".shop-fxbox{height:74px;border-radius:11px;background:#1e1b4b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;padding:0 6px;overflow:hidden}",
+    ".shop-name{font-weight:700;font-size:14px}",
+    ".shop-prog{height:6px;border-radius:99px;background:rgba(128,128,128,.28);overflow:hidden}",
+    ".shop-prog i{display:block;height:100%;background:linear-gradient(90deg,#a78bfa,#7c3aed);border-radius:99px}",
+    ".shop-act{border:0;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:800;cursor:pointer;width:100%}",
+    ".shop-buy{color:#fff;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 12px rgba(16,185,129,.4)}",
+    ".shop-lock{color:inherit;background:rgba(128,128,128,.22);font-weight:700}",
+    ".shop-equip{color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed)}",
+    ".shop-off{color:inherit;background:transparent;border:2px solid rgba(124,58,237,.6)}",
+    ".shop-pack{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:rgba(128,128,128,.12);border:2px solid #94a3b8;margin-bottom:12px}",
+    ".shop-pack.r-leg{border-color:#f59e0b;box-shadow:0 0 16px rgba(245,158,11,.5)}",
+    ".shop-pack-n{font-size:34px;font-weight:800;min-width:74px;text-align:center}",
+    ".shop-pack-c{flex:1}",
+    ".shop-pack .shop-act{width:auto;min-width:104px}",
+    ".shop-tag{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff;background:linear-gradient(135deg,#f59e0b,#ef4444);margin-left:6px}",
+    ".shop-chip{display:inline-block;padding:6px 12px;border-radius:99px;background:rgba(124,58,237,.18);font-weight:700;font-size:14px;margin:4px 0 12px}",
+    ".shop-toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:2200;background:#111827;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;max-width:86%;text-align:center}",
+    ".shop-confetti{position:fixed;top:0;right:0;bottom:0;left:0;z-index:2100;pointer-events:none;overflow:hidden}",
+    ".shop-confetti i{position:absolute;top:-16px;width:9px;height:14px;border-radius:2px;animation:shopFall 2.3s ease-in forwards}",
+    "@keyframes shopFall{to{transform:translateY(108vh) rotate(720deg)}}",
+    "@keyframes shopShine{from{left:-60%}to{left:140%}}",
+    "@keyframes shopSpin{0%,100%{transform:rotateY(0)}50%{transform:rotateY(180deg)}}",
+    ".wl-name.fx-glow,.shop-fx.fx-glow{text-shadow:0 0 8px #fff,0 0 20px #a78bfa,0 0 34px #7c3aed !important}",
+    ".wl-name.fx-rainbow,.shop-fx.fx-rainbow{background:linear-gradient(90deg,#ef4444,#f59e0b,#16a34a,#3b82f6,#a855f7) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important}",
+    ".shop-fx{display:inline-block}"
+  ].join("");
   var styleEl = document.createElement("style");
   styleEl.textContent = css;
   document.head.appendChild(styleEl);
@@ -57,6 +92,10 @@
   var data = null;
   var err = "";
   var busy = false;
+  var tab = "bg";
+  var tryBg = null;
+  var tryFx = null;
+  var shownBal = 0;
 
   function esc(text) {
     var div = document.createElement("div");
@@ -73,6 +112,16 @@
   }
   function setLocal(v) {
     try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch (e) {}
+  }
+
+  function myName() {
+    var s = window.SamWelcome && window.SamWelcome.getStyle ? window.SamWelcome.getStyle() : null;
+    if (s && s.name && String(s.name).trim()) return String(s.name).trim();
+    try {
+      var p = localStorage.getItem("samquiz:pseudo");
+      if (p) return p;
+    } catch (e) {}
+    return "Toi";
   }
 
   function applyFx() {
@@ -98,79 +147,167 @@
     setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 2600);
   }
 
-  /* ---------- affichage ---------- */
-
-  function ownedList() {
-    return data && data.owned ? data.owned : [];
+  function confetti() {
+    var colors = ["#4f46e5", "#7c3aed", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#ec4899"];
+    var box = document.createElement("div");
+    box.className = "shop-confetti";
+    var html = "";
+    for (var i = 0; i < 44; i++) {
+      html += "<i style='left:" + Math.round(Math.random() * 100) + "%;background:" + colors[i % colors.length] +
+        ";animation-delay:" + (Math.random() * 0.7).toFixed(2) + "s;animation-duration:" +
+        (1.8 + Math.random() * 1.2).toFixed(2) + "s'></i>";
+    }
+    box.innerHTML = html;
+    document.body.appendChild(box);
+    setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 3600);
+    try { if (navigator.vibrate) navigator.vibrate([40, 30, 60]); } catch (e) {}
   }
 
-  function lookBtn(it, equipped) {
-    var owned = ownedList().indexOf(it.id) !== -1;
+  /* ---------- affichage ---------- */
+
+  function isOwned(id) {
+    return !!(data && data.owned && data.owned.indexOf(id) !== -1);
+  }
+
+  function actBtn(it, equipped) {
+    var owned = isOwned(it.id);
     if (!owned) {
-      var low = data.balance < it.price ? " shop-low" : "";
-      return "<button class='btn btn-primary btn-block shop-btn" + low + "' data-act='buy' data-id='" + it.id +
-        "' type='button'>" + it.price + " SG</button>";
+      if (data.balance >= it.price) {
+        return "<button class='shop-act shop-buy' data-act='buy' data-id='" + it.id + "' type='button'>Acheter · " + it.price + " SG</button>";
+      }
+      var pct = Math.max(4, Math.min(100, Math.round((data.balance / it.price) * 100)));
+      return "<div class='shop-prog'><i style='width:" + pct + "%'></i></div>" +
+        "<button class='shop-act shop-lock' data-act='buy' data-id='" + it.id + "' type='button'>🔒 Il manque " +
+        (it.price - data.balance) + " SG</button>";
     }
     if (equipped) {
-      return "<button class='btn btn-secondary btn-block shop-btn' data-act='off' data-id='" + it.id +
-        "' type='button'>✓ Équipé · Retirer</button>";
+      return "<button class='shop-act shop-off' data-act='off' data-id='" + it.id + "' type='button'>✓ Équipé · Retirer</button>";
     }
-    return "<button class='btn btn-primary btn-block shop-btn' data-act='equip' data-id='" + it.id +
-      "' type='button'>Équiper</button>";
+    return "<button class='shop-act shop-equip' data-act='equip' data-id='" + it.id + "' type='button'>Équiper</button>";
+  }
+
+  function nextGoal() {
+    var best = null;
+    BGS.concat(FXS).forEach(function (it) {
+      if (!isOwned(it.id) && it.price > data.balance && (!best || it.price < best.price)) best = it;
+    });
+    if (best) {
+      var pct = Math.max(3, Math.round((data.balance / best.price) * 100));
+      return "<div class='shop-goal'>Encore <b>" + (best.price - data.balance) + " SG</b> pour « " + esc(best.name) + " »" +
+        "<div class='shop-bar'><i style='width:" + pct + "%'></i></div></div>";
+    }
+    var can = 0;
+    BGS.concat(FXS, PACKS).forEach(function (it) {
+      if (it.id.indexOf("ai_") === 0 || !isOwned(it.id)) { if (data.balance >= it.price) can++; }
+    });
+    return "<div class='shop-goal'>" + (can ? "🎉 Tu peux acheter <b>" + can + " objet" + (can > 1 ? "s" : "") + "</b> !" : "Continue à jouer pour gagner des SG !") + "</div>";
+  }
+
+  function bigPreview(bgCss, fxKey) {
+    return "<div class='shop-prev' style='background:" + (bgCss || DEFAULT_BG) + "'>" +
+      "<div class='shop-prev-h'>BIENVENUE</div>" +
+      "<div class='shop-prev-n'><span class='shop-fx" + (fxKey ? " fx-" + fxKey : "") + "'>" + esc(myName()) + "</span></div>" +
+      "<div class='shop-prev-s'>Prêt à réviser ?</div></div>" +
+      "<div class='shop-prevlab'>Aperçu : touche un objet pour l'essayer</div>";
+  }
+
+  function cssOf(id) {
+    for (var i = 0; i < BGS.length; i++) if (BGS[i].id === id) return BGS[i].css;
+    return "";
+  }
+
+  function tabBg() {
+    var l = local();
+    var cur = tryBg || l.bg;
+    var html = bigPreview(cssOf(cur), l.fx) + "<div class='shop-grid'>";
+    BGS.forEach(function (it) {
+      html += "<div class='shop-card r-" + it.rar + (cur === it.id ? " sel" : "") + "' data-try='" + it.id + "'>" +
+        "<span class='shop-rar'>" + RAR[it.rar] + "</span>" +
+        "<div class='shop-mini' style='background:" + it.css + "'>" + esc(it.name) + "</div>" +
+        actBtn(it, l.bg === it.id) + "</div>";
+    });
+    return html + "</div>";
+  }
+
+  function tabFx() {
+    var l = local();
+    var cur = tryFx !== null ? tryFx : l.fx;
+    var html = bigPreview(cssOf(l.bg), cur) + "<div class='shop-grid'>";
+    FXS.forEach(function (it) {
+      html += "<div class='shop-card r-" + it.rar + (cur === it.fx ? " sel" : "") + "' data-tryfx='" + it.fx + "'>" +
+        "<span class='shop-rar'>" + RAR[it.rar] + "</span>" +
+        "<div class='shop-fxbox'><span class='shop-fx fx-" + it.fx + "'>" + esc(myName()) + "</span></div>" +
+        "<div class='shop-name'>" + esc(it.name) + "</div>" +
+        actBtn(it, l.fx === it.fx) + "</div>";
+    });
+    return html + "</div>";
+  }
+
+  function tabAi() {
+    var html = "<div class='shop-chip'>🤖 Tu as " + data.ai_credits + " message" + (data.ai_credits > 1 ? "s" : "") + " en plus</div>" +
+      "<p class='shop-note'>Quand tu as utilisé tes messages du jour avec Samoloski AI, ceux-ci prennent le relais.</p>";
+    PACKS.forEach(function (it) {
+      var affordable = data.balance >= it.price;
+      var btn = affordable
+        ? "<button class='shop-act shop-buy' data-act='buy' data-id='" + it.id + "' type='button'>" + it.price + " SG</button>"
+        : "<button class='shop-act shop-lock' data-act='buy' data-id='" + it.id + "' type='button'>🔒 " + it.price + " SG</button>";
+      html += "<div class='shop-pack r-" + it.rar + "'>" +
+        "<div class='shop-pack-n'>+" + it.n + "</div>" +
+        "<div class='shop-pack-c'><div class='shop-name'>" + it.name + (it.best ? "<span class='shop-tag'>MEILLEUR PRIX</span>" : "") + "</div>" +
+        "<div class='shop-note' style='margin:2px 0 0'>" + Math.round(it.price / it.n) + " SG par message</div></div>" + btn + "</div>";
+    });
+    return html;
   }
 
   function render() {
     if (!page) return;
-    var html =
-      "<div class='shop-top'><button class='shop-back' id='shop-back' type='button'>←</button>" +
-      "<h2>🛍️ Boutique</h2></div><div class='shop-body'>";
+    var head =
+      "<div class='shop-top'><button class='shop-back' id='shop-back' type='button'>←</button><h2>🛍️ Boutique</h2></div>";
 
     if (err === "offline") {
-      html += "<p class='shop-note'>La boutique demande une connexion internet. Vérifie ta connexion puis rouvre-la.</p></div>";
-      page.innerHTML = html;
+      page.innerHTML = head + "<div class='shop-body'><p class='shop-note'>La boutique demande une connexion internet. Vérifie ta connexion puis rouvre-la.</p></div>";
       return;
     }
     if (err === "noprofile") {
-      html += "<p class='shop-note'>Crée d'abord ton pseudo (au classement) et gagne tes premiers SG pour ouvrir la boutique.</p></div>";
-      page.innerHTML = html;
+      page.innerHTML = head + "<div class='shop-body'><p class='shop-note'>Crée d'abord ton pseudo (au classement) et gagne tes premiers SG pour ouvrir la boutique.</p></div>";
       return;
     }
     if (!data) {
-      html += "<p class='shop-note'>Chargement…</p></div>";
-      page.innerHTML = html;
+      page.innerHTML = head + "<div class='shop-body'><p class='shop-note'>Chargement…</p></div>";
       return;
     }
 
-    var l = local();
-    html +=
-      "<div class='shop-bal'><div class='shop-bal-n'>⭐ " + data.balance + " SG</div>" +
-      "<div>Solde à dépenser</div>" +
-      "<small>Total gagné : " + data.sg + " SG. Tes achats ne baissent jamais ton classement.</small></div>";
-
-    html += "<h3>Looks du profil</h3><h4>Fonds de la carte Bienvenue</h4><div class='shop-grid'>";
-    BGS.forEach(function (it) {
-      html += "<div class='shop-card'><div class='shop-sw' style='background:" + it.css + "'></div>" +
-        "<div class='shop-name'>" + esc(it.name) + "</div>" + lookBtn(it, l.bg === it.id) + "</div>";
-    });
-    html += "</div><h4>Effets sur ton nom</h4><div class='shop-grid'>";
-    FXS.forEach(function (it) {
-      html += "<div class='shop-card'><div class='shop-fxbox'><span class='shop-fx fx-" + it.fx + "'>Samoloski</span></div>" +
-        "<div class='shop-name'>" + esc(it.name) + "</div>" + lookBtn(it, l.fx === it.fx) + "</div>";
-    });
-    html += "</div>";
-
-    html += "<h3>Messages IA en plus</h3>" +
-      "<p class='shop-note'>Quand tu as utilisé tes messages du jour avec Samoloski AI, ces messages prennent le relais. " +
-      "Il t'en reste : <strong>" + data.ai_credits + "</strong>.</p>";
-    PACKS.forEach(function (it) {
-      var low = data.balance < it.price ? " shop-low" : "";
-      html += "<div class='shop-row'><div class='shop-name'>🤖 " + esc(it.name) + "</div>" +
-        "<button class='btn btn-primary shop-btn" + low + "' data-act='buy' data-id='" + it.id + "' type='button'>" +
-        it.price + " SG</button></div>";
-    });
-
-    html += "</div>";
+    var html = head +
+      "<div class='shop-hero'><div class='shop-bal-n'><span>⭐</span> <b id='shop-bal'>" + shownBal + "</b> SG</div>" +
+      "<div class='shop-bal-l'>à dépenser</div>" + nextGoal() +
+      "<small>Total gagné : " + data.sg + " SG · tes achats ne baissent jamais ton classement</small></div>" +
+      "<div class='shop-tabs'>" +
+      "<button class='shop-tab" + (tab === "bg" ? " on" : "") + "' data-tab='bg' type='button'>🎨 Fonds</button>" +
+      "<button class='shop-tab" + (tab === "fx" ? " on" : "") + "' data-tab='fx' type='button'>✨ Effets</button>" +
+      "<button class='shop-tab" + (tab === "ai" ? " on" : "") + "' data-tab='ai' type='button'>🤖 Messages IA</button></div>" +
+      "<div class='shop-body'>" + (tab === "bg" ? tabBg() : tab === "fx" ? tabFx() : tabAi()) + "</div>";
     page.innerHTML = html;
+    countUp();
+  }
+
+  function countUp() {
+    var el = document.getElementById("shop-bal");
+    if (!el || !data) return;
+    var from = shownBal;
+    var to = data.balance;
+    if (from === to) { el.textContent = to; return; }
+    var t0 = Date.now();
+    var dur = 700;
+    function step() {
+      var k = Math.min(1, (Date.now() - t0) / dur);
+      var v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+      var e2 = document.getElementById("shop-bal");
+      if (e2) e2.textContent = v;
+      if (k < 1) requestAnimationFrame(step);
+      else shownBal = to;
+    }
+    shownBal = to;
+    requestAnimationFrame(step);
   }
 
   function refresh() {
@@ -236,6 +373,7 @@
     window.SamCloud.buyItem(it.id).then(function (d) {
       busy = false;
       data = d;
+      confetti();
       if (it.css || it.fx) {
         equip(it);
         toast("Acheté et équipé ✓");
@@ -274,24 +412,39 @@
       page.hidden = true;
       page.addEventListener("click", function (e) {
         var b = e.target.closest("button");
-        if (!b) return;
-        if (b.id === "shop-back") { closeShop(); return; }
-        var it = findItem(b.getAttribute("data-id"));
-        var act = b.getAttribute("data-act");
-        if (!it || !act) return;
-        if (act === "buy") buy(it);
-        else if (act === "equip") { equip(it); render(); toast("Équipé ✓"); }
-        else if (act === "off") { unequip(it); render(); }
+        if (b) {
+          if (b.id === "shop-back") { closeShop(); return; }
+          var tb = b.getAttribute("data-tab");
+          if (tb) { tab = tb; render(); return; }
+          var it = findItem(b.getAttribute("data-id"));
+          var act = b.getAttribute("data-act");
+          if (!it || !act) return;
+          if (act === "buy") buy(it);
+          else if (act === "equip") { equip(it); render(); toast("Équipé ✓"); }
+          else if (act === "off") { unequip(it); render(); }
+          return;
+        }
+        var card = e.target.closest("[data-try],[data-tryfx]");
+        if (card) {
+          if (card.hasAttribute("data-try")) tryBg = card.getAttribute("data-try");
+          else tryFx = card.getAttribute("data-tryfx");
+          render();
+        }
       });
       document.body.appendChild(page);
     }
-    page.style.background = bgOf(document.body) || bgOf(document.documentElement) || "#ffffff";
+    var bg = bgOf(document.body) || bgOf(document.documentElement) || "#ffffff";
+    page.style.background = bg;
+    page.style.setProperty("--shop-bg", bg);
     page.style.color = getComputedStyle(document.body).color;
     page.hidden = false;
     document.body.classList.add("no-scroll");
     if (!history.state || history.state.screen !== "shop") {
       history.pushState({ screen: "shop" }, "");
     }
+    tryBg = null;
+    tryFx = null;
+    shownBal = 0;
     render();
     refresh();
   }
