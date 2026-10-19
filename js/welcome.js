@@ -60,7 +60,7 @@
     for (var i = 0; i < BACKS.length; i++) if (BACKS[i].c === (st.back || "")) b = BACKS[i];
     if (st.back) card.style.setProperty("background", st.back, "important");
     else card.style.removeProperty("background");
-    card.classList.toggle("wl-dark", !!(b && b.dark));
+    card.classList.toggle("wl-dark", !!((b && b.dark) || (st.dark && st.dark === st.back)));
 
     var f = FONTS[0];
     for (var j = 0; j < FONTS.length; j++) if (FONTS[j].k === st.font) f = FONTS[j];
@@ -91,6 +91,17 @@
   }
 
   /* ---- fenêtre de personnalisation ---- */
+  window.SamWelcome = {
+    setStyle: function (o) {
+      for (var k in o) {
+        if (Object.prototype.hasOwnProperty.call(o, k)) st[k] = o[k];
+      }
+      save();
+      applyStyle();
+    },
+    getStyle: function () { return st; }
+  };
+
   var sheet = document.createElement("div");
   sheet.className = "wl-sheet";
   sheet.hidden = true;

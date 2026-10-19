@@ -228,6 +228,20 @@
       });
   });
 
+  async function getShop() {
+    if (!client) throw new Error("Hors ligne");
+    var res = await client.rpc("get_shop");
+    if (res.error) throw res.error;
+    return res.data;
+  }
+
+  async function buyItem(item) {
+    if (!client) throw new Error("Hors ligne");
+    var res = await client.rpc("buy_item", { p_item: item });
+    if (res.error) throw res.error;
+    return res.data;
+  }
+
   window.SamCloud = {
     available: function () { return !!client; },
     getProfile: function () { return profile; },
@@ -242,6 +256,8 @@
     dailyAttempt: dailyAttempt,
     submitDaily: submitDaily,
     chatAsk: chatAsk,
-    chatUsed: chatUsed
+    chatUsed: chatUsed,
+    getShop: getShop,
+    buyItem: buyItem
   };
 })();
