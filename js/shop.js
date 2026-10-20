@@ -7,18 +7,39 @@
     { id: "bg_ocean", name: "Océan", price: 300, rar: "common", css: "linear-gradient(135deg,#0ea5e9,#1d4ed8)" },
     { id: "bg_sunset", name: "Coucher de soleil", price: 300, rar: "common", css: "linear-gradient(135deg,#f97316,#db2777)" },
     { id: "bg_forest", name: "Forêt", price: 300, rar: "common", css: "linear-gradient(135deg,#16a34a,#065f46)" },
+    { id: "bg_cherry", name: "Cerise", price: 300, rar: "common", css: "linear-gradient(135deg,#be123c,#fb7185)" },
+    { id: "bg_aurora", name: "Aurore", price: 350, rar: "rare", css: "linear-gradient(135deg,#06b6d4,#7c3aed)" },
     { id: "bg_night", name: "Nuit étoilée", price: 400, rar: "rare", css: "linear-gradient(135deg,#4338ca,#0f172a)" },
-    { id: "bg_gold", name: "Or royal", price: 600, rar: "leg", css: "linear-gradient(135deg,#f59e0b,#b45309)" }
+    { id: "bg_lava", name: "Lave", price: 450, rar: "epic", css: "linear-gradient(135deg,#450a0a,#dc2626,#f97316)" },
+    { id: "bg_galaxy", name: "Galaxie", price: 500, rar: "epic", css: "linear-gradient(135deg,#0f172a,#581c87,#be185d)" },
+    { id: "bg_gold", name: "Or royal", price: 600, rar: "leg", css: "linear-gradient(135deg,#f59e0b,#b45309)" },
+    { id: "bg_diamond", name: "Diamant", price: 900, rar: "leg", css: "linear-gradient(135deg,#0ea5e9,#8b5cf6,#d946ef)" }
   ];
   var FXS = [
+    { id: "name_pulse", name: "Pulsation", price: 350, rar: "rare", fx: "pulse" },
     { id: "name_glow", name: "Lueur", price: 400, rar: "rare", fx: "glow" },
-    { id: "name_rainbow", name: "Arc-en-ciel", price: 500, rar: "epic", fx: "rainbow" }
+    { id: "name_neon", name: "Néon", price: 450, rar: "rare", fx: "neon" },
+    { id: "name_rainbow", name: "Arc-en-ciel", price: 500, rar: "epic", fx: "rainbow" },
+    { id: "name_fire", name: "Feu", price: 550, rar: "epic", fx: "fire" },
+    { id: "name_gold", name: "Or pur", price: 700, rar: "leg", fx: "gold" }
+  ];
+  var EMS = [
+    { id: "em_fire", name: "Flamme", price: 300, rar: "common", em: "🔥" },
+    { id: "em_bolt", name: "Éclair", price: 300, rar: "common", em: "⚡" },
+    { id: "em_brain", name: "Cerveau", price: 350, rar: "common", em: "🧠" },
+    { id: "em_rocket", name: "Fusée", price: 400, rar: "rare", em: "🚀" },
+    { id: "em_star", name: "Étoile", price: 450, rar: "rare", em: "🌟" },
+    { id: "em_lion", name: "Lion", price: 500, rar: "rare", em: "🦁" },
+    { id: "em_diamond", name: "Diamant", price: 600, rar: "epic", em: "💎" },
+    { id: "em_crown", name: "Couronne", price: 800, rar: "leg", em: "👑" }
   ];
   var PACKS = [
     { id: "ai_5", name: "5 messages IA", n: 5, price: 150, rar: "common" },
-    { id: "ai_20", name: "20 messages IA", n: 20, price: 500, rar: "leg", best: true }
+    { id: "ai_20", name: "20 messages IA", n: 20, price: 500, rar: "rare" },
+    { id: "ai_50", name: "50 messages IA", n: 50, price: 1000, rar: "leg", best: true }
   ];
   var RAR = { common: "Commun", rare: "Rare", epic: "Épique", leg: "Légendaire" };
+  var FX_KEYS = ["glow", "rainbow", "neon", "fire", "gold", "pulse"];
 
   var css = [
     ".sg-pill{cursor:pointer}",
@@ -40,10 +61,10 @@
     ".shop-tab{flex:0 0 auto;border:0;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;background:rgba(128,128,128,.18);color:inherit}",
     ".shop-tab.on{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.4)}",
     ".shop-body{padding:4px 16px 40px;max-width:560px;margin:0 auto}",
-    ".shop-body h3{margin:10px 0 4px;font-size:17px}",
     ".shop-note{opacity:.75;font-size:14px;margin:4px 0 10px}",
     ".shop-prev{border-radius:20px;padding:22px 16px;text-align:center;color:#fff;margin:6px 0 4px;box-shadow:0 8px 22px rgba(0,0,0,.25)}",
     ".shop-prev-h{font-size:12px;letter-spacing:.3em;font-weight:700;opacity:.85}",
+    ".shop-prev-e{font-size:32px;line-height:1.1;margin-top:4px}",
     ".shop-prev-n{font-size:34px;font-weight:800;margin:6px 0 2px;word-break:break-word}",
     ".shop-prev-s{font-size:13px;opacity:.9}",
     ".shop-prevlab{font-size:12px;opacity:.65;text-align:center;margin-bottom:12px}",
@@ -68,6 +89,7 @@
     ".shop-equip{color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed)}",
     ".shop-off{color:inherit;background:transparent;border:2px solid rgba(124,58,237,.6)}",
     ".shop-pack{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:rgba(128,128,128,.12);border:2px solid #94a3b8;margin-bottom:12px}",
+    ".shop-pack.r-rare{border-color:#3b82f6}",
     ".shop-pack.r-leg{border-color:#f59e0b;box-shadow:0 0 16px rgba(245,158,11,.5)}",
     ".shop-pack-n{font-size:34px;font-weight:800;min-width:74px;text-align:center}",
     ".shop-pack-c{flex:1}",
@@ -80,9 +102,14 @@
     "@keyframes shopFall{to{transform:translateY(108vh) rotate(720deg)}}",
     "@keyframes shopShine{from{left:-60%}to{left:140%}}",
     "@keyframes shopSpin{0%,100%{transform:rotateY(0)}50%{transform:rotateY(180deg)}}",
+    "@keyframes shopPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}",
+    ".shop-fx{display:inline-block}",
     ".wl-name.fx-glow,.shop-fx.fx-glow{text-shadow:0 0 8px #fff,0 0 20px #a78bfa,0 0 34px #7c3aed !important}",
     ".wl-name.fx-rainbow,.shop-fx.fx-rainbow{background:linear-gradient(90deg,#ef4444,#f59e0b,#16a34a,#3b82f6,#a855f7) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important}",
-    ".shop-fx{display:inline-block}"
+    ".wl-name.fx-neon,.shop-fx.fx-neon{background:none !important;-webkit-text-fill-color:#a5f3fc !important;color:#a5f3fc !important;text-shadow:0 0 6px #22d3ee,0 0 16px #06b6d4,0 0 30px #0891b2 !important}",
+    ".wl-name.fx-fire,.shop-fx.fx-fire{background:linear-gradient(180deg,#fde047,#f97316,#dc2626) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important;filter:drop-shadow(0 0 8px rgba(249,115,22,.7))}",
+    ".wl-name.fx-gold,.shop-fx.fx-gold{background:linear-gradient(90deg,#fde68a,#f59e0b,#fef3c7,#d97706) !important;-webkit-background-clip:text !important;background-clip:text !important;-webkit-text-fill-color:transparent !important;color:transparent !important;filter:drop-shadow(0 0 6px rgba(245,158,11,.6))}",
+    ".wl-name.fx-pulse,.shop-fx.fx-pulse{animation:shopPulse 1.6s ease-in-out infinite}"
   ].join("");
   var styleEl = document.createElement("style");
   styleEl.textContent = css;
@@ -95,6 +122,7 @@
   var tab = "bg";
   var tryBg = null;
   var tryFx = null;
+  var tryEm = null;
   var shownBal = 0;
 
   function esc(text) {
@@ -106,9 +134,9 @@
   function local() {
     try {
       var v = JSON.parse(localStorage.getItem(LS_KEY));
-      if (v && typeof v === "object") return { bg: v.bg || "", fx: v.fx || "" };
+      if (v && typeof v === "object") return { bg: v.bg || "", fx: v.fx || "", em: v.em || "" };
     } catch (e) {}
-    return { bg: "", fx: "" };
+    return { bg: "", fx: "", em: "" };
   }
   function setLocal(v) {
     try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch (e) {}
@@ -124,17 +152,40 @@
     return "Toi";
   }
 
-  function applyFx() {
-    var el = document.querySelector(".wl-name");
-    if (!el) return;
+  function cssOf(id) {
+    for (var i = 0; i < BGS.length; i++) if (BGS[i].id === id) return BGS[i].css;
+    return "";
+  }
+  function emojiOf(id) {
+    for (var i = 0; i < EMS.length; i++) if (EMS[i].id === id) return EMS[i].em;
+    return "";
+  }
+
+  /* applique fx + emblème sur la carte Bienvenue */
+  function applyLooks() {
+    var name = document.querySelector(".wl-name");
+    if (!name) return;
     var l = local();
-    ["glow", "rainbow"].forEach(function (x) {
-      el.classList.toggle("fx-" + x, l.fx === x);
+    FX_KEYS.forEach(function (x) {
+      name.classList.toggle("fx-" + x, l.fx === x);
     });
+    var emoji = emojiOf(l.em);
+    var el = document.getElementById("shop-emb");
+    if (!emoji) {
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+      return;
+    }
+    if (!el && name.parentNode) {
+      el = document.createElement("div");
+      el.id = "shop-emb";
+      el.style.cssText = "text-align:center;font-size:30px;line-height:1.1;margin:2px 0";
+      name.parentNode.insertBefore(el, name);
+    }
+    if (el) el.textContent = emoji;
   }
 
   function findItem(id) {
-    var all = BGS.concat(FXS, PACKS);
+    var all = BGS.concat(FXS, EMS, PACKS);
     for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
     return null;
   }
@@ -188,7 +239,7 @@
 
   function nextGoal() {
     var best = null;
-    BGS.concat(FXS).forEach(function (it) {
+    BGS.concat(FXS, EMS).forEach(function (it) {
       if (!isOwned(it.id) && it.price > data.balance && (!best || it.price < best.price)) best = it;
     });
     if (best) {
@@ -197,29 +248,25 @@
         "<div class='shop-bar'><i style='width:" + pct + "%'></i></div></div>";
     }
     var can = 0;
-    BGS.concat(FXS, PACKS).forEach(function (it) {
-      if (it.id.indexOf("ai_") === 0 || !isOwned(it.id)) { if (data.balance >= it.price) can++; }
+    BGS.concat(FXS, EMS).forEach(function (it) {
+      if (!isOwned(it.id) && data.balance >= it.price) can++;
     });
-    return "<div class='shop-goal'>" + (can ? "🎉 Tu peux acheter <b>" + can + " objet" + (can > 1 ? "s" : "") + "</b> !" : "Continue à jouer pour gagner des SG !") + "</div>";
+    return "<div class='shop-goal'>" + (can ? "🎉 Tu peux acheter <b>" + can + " objet" + (can > 1 ? "s" : "") + "</b> !" : "Tu as tout acheté, bravo ! 👑") + "</div>";
   }
 
-  function bigPreview(bgCss, fxKey) {
+  function bigPreview(bgCss, fxKey, emoji) {
     return "<div class='shop-prev' style='background:" + (bgCss || DEFAULT_BG) + "'>" +
       "<div class='shop-prev-h'>BIENVENUE</div>" +
+      (emoji ? "<div class='shop-prev-e'>" + emoji + "</div>" : "") +
       "<div class='shop-prev-n'><span class='shop-fx" + (fxKey ? " fx-" + fxKey : "") + "'>" + esc(myName()) + "</span></div>" +
       "<div class='shop-prev-s'>Prêt à réviser ?</div></div>" +
       "<div class='shop-prevlab'>Aperçu : touche un objet pour l'essayer</div>";
   }
 
-  function cssOf(id) {
-    for (var i = 0; i < BGS.length; i++) if (BGS[i].id === id) return BGS[i].css;
-    return "";
-  }
-
   function tabBg() {
     var l = local();
     var cur = tryBg || l.bg;
-    var html = bigPreview(cssOf(cur), l.fx) + "<div class='shop-grid'>";
+    var html = bigPreview(cssOf(cur), l.fx, emojiOf(l.em)) + "<div class='shop-grid'>";
     BGS.forEach(function (it) {
       html += "<div class='shop-card r-" + it.rar + (cur === it.id ? " sel" : "") + "' data-try='" + it.id + "'>" +
         "<span class='shop-rar'>" + RAR[it.rar] + "</span>" +
@@ -232,13 +279,27 @@
   function tabFx() {
     var l = local();
     var cur = tryFx !== null ? tryFx : l.fx;
-    var html = bigPreview(cssOf(l.bg), cur) + "<div class='shop-grid'>";
+    var html = bigPreview(cssOf(l.bg), cur, emojiOf(l.em)) + "<div class='shop-grid'>";
     FXS.forEach(function (it) {
       html += "<div class='shop-card r-" + it.rar + (cur === it.fx ? " sel" : "") + "' data-tryfx='" + it.fx + "'>" +
         "<span class='shop-rar'>" + RAR[it.rar] + "</span>" +
         "<div class='shop-fxbox'><span class='shop-fx fx-" + it.fx + "'>" + esc(myName()) + "</span></div>" +
         "<div class='shop-name'>" + esc(it.name) + "</div>" +
         actBtn(it, l.fx === it.fx) + "</div>";
+    });
+    return html + "</div>";
+  }
+
+  function tabEm() {
+    var l = local();
+    var cur = tryEm !== null ? tryEm : l.em;
+    var html = bigPreview(cssOf(l.bg), l.fx, emojiOf(cur)) + "<div class='shop-grid'>";
+    EMS.forEach(function (it) {
+      html += "<div class='shop-card r-" + it.rar + (cur === it.id ? " sel" : "") + "' data-tryem='" + it.id + "'>" +
+        "<span class='shop-rar'>" + RAR[it.rar] + "</span>" +
+        "<div class='shop-fxbox' style='font-size:38px'>" + it.em + "</div>" +
+        "<div class='shop-name'>" + esc(it.name) + "</div>" +
+        actBtn(it, l.em === it.id) + "</div>";
     });
     return html + "</div>";
   }
@@ -277,16 +338,18 @@
       return;
     }
 
-    var html = head +
+    function tabBtn(k, label) {
+      return "<button class='shop-tab" + (tab === k ? " on" : "") + "' data-tab='" + k + "' type='button'>" + label + "</button>";
+    }
+    var body = tab === "bg" ? tabBg() : tab === "fx" ? tabFx() : tab === "em" ? tabEm() : tabAi();
+
+    page.innerHTML = head +
       "<div class='shop-hero'><div class='shop-bal-n'><span>⭐</span> <b id='shop-bal'>" + shownBal + "</b> SG</div>" +
       "<div class='shop-bal-l'>à dépenser</div>" + nextGoal() +
       "<small>Total gagné : " + data.sg + " SG · tes achats ne baissent jamais ton classement</small></div>" +
-      "<div class='shop-tabs'>" +
-      "<button class='shop-tab" + (tab === "bg" ? " on" : "") + "' data-tab='bg' type='button'>🎨 Fonds</button>" +
-      "<button class='shop-tab" + (tab === "fx" ? " on" : "") + "' data-tab='fx' type='button'>✨ Effets</button>" +
-      "<button class='shop-tab" + (tab === "ai" ? " on" : "") + "' data-tab='ai' type='button'>🤖 Messages IA</button></div>" +
-      "<div class='shop-body'>" + (tab === "bg" ? tabBg() : tab === "fx" ? tabFx() : tabAi()) + "</div>";
-    page.innerHTML = html;
+      "<div class='shop-tabs'>" + tabBtn("bg", "🎨 Fonds") + tabBtn("fx", "✨ Effets") +
+      tabBtn("em", "👑 Emblèmes") + tabBtn("ai", "🤖 Messages IA") + "</div>" +
+      "<div class='shop-body'>" + body + "</div>";
     countUp();
   }
 
@@ -304,7 +367,6 @@
       var e2 = document.getElementById("shop-bal");
       if (e2) e2.textContent = v;
       if (k < 1) requestAnimationFrame(step);
-      else shownBal = to;
     }
     shownBal = to;
     requestAnimationFrame(step);
@@ -335,9 +397,11 @@
       l.bg = it.id;
     } else if (it.fx) {
       l.fx = it.fx;
+    } else if (it.em) {
+      l.em = it.id;
     }
     setLocal(l);
-    applyFx();
+    applyLooks();
   }
 
   function unequip(it) {
@@ -350,9 +414,11 @@
       l.bg = "";
     } else if (it.fx) {
       l.fx = "";
+    } else if (it.em) {
+      l.em = "";
     }
     setLocal(l);
-    applyFx();
+    applyLooks();
   }
 
   function errText(e) {
@@ -374,7 +440,7 @@
       busy = false;
       data = d;
       confetti();
-      if (it.css || it.fx) {
+      if (it.css || it.fx || it.em) {
         equip(it);
         toast("Acheté et équipé ✓");
       } else {
@@ -424,10 +490,11 @@
           else if (act === "off") { unequip(it); render(); }
           return;
         }
-        var card = e.target.closest("[data-try],[data-tryfx]");
+        var card = e.target.closest("[data-try],[data-tryfx],[data-tryem]");
         if (card) {
           if (card.hasAttribute("data-try")) tryBg = card.getAttribute("data-try");
-          else tryFx = card.getAttribute("data-tryfx");
+          else if (card.hasAttribute("data-tryfx")) tryFx = card.getAttribute("data-tryfx");
+          else tryEm = card.getAttribute("data-tryem");
           render();
         }
       });
@@ -444,6 +511,7 @@
     }
     tryBg = null;
     tryFx = null;
+    tryEm = null;
     shownBal = 0;
     render();
     refresh();
@@ -459,7 +527,7 @@
 
   window.SamShop = { open: openShop };
 
-  applyFx();
-  setTimeout(applyFx, 700);
-  setTimeout(applyFx, 1800);
+  applyLooks();
+  setTimeout(applyLooks, 700);
+  setTimeout(applyLooks, 1800);
 })();
