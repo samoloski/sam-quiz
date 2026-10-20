@@ -242,6 +242,20 @@
     return res.data;
   }
 
+  async function savePushSub(endpoint) {
+    if (!client) throw new Error("Hors ligne");
+    var res = await client.rpc("save_push_sub", { p_endpoint: endpoint });
+    if (res.error) throw res.error;
+    return res.data;
+  }
+
+  async function dropPushSub(endpoint) {
+    if (!client) throw new Error("Hors ligne");
+    var res = await client.rpc("drop_push_sub", { p_endpoint: endpoint });
+    if (res.error) throw res.error;
+    return res.data;
+  }
+
   window.SamCloud = {
     available: function () { return !!client; },
     getProfile: function () { return profile; },
@@ -258,6 +272,8 @@
     chatAsk: chatAsk,
     chatUsed: chatUsed,
     getShop: getShop,
-    buyItem: buyItem
+    buyItem: buyItem,
+    savePushSub: savePushSub,
+    dropPushSub: dropPushSub
   };
 })();

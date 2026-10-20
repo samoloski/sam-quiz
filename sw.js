@@ -1,5 +1,5 @@
 /* sam quiz : service worker (mode hors ligne) - change le numero de version quand tu ajoutes des fichiers */
-const CACHE = "samquiz-v39";
+const CACHE = "samquiz-v40";
 
 const FILES = [
   "/",
@@ -32,6 +32,7 @@ const FILES = [
   "/js/duel.js",
   "/js/duel-live.js",
   "/js/shop.js",
+  "/js/notif.js",
   "/js/badges.js",
   "/js/dyn.js",
   "/js/infini.js",
@@ -134,4 +135,48 @@ self.addEventListener("fetch", function (event) {
   if (sameOrigin && url.pathname.indexOf("/api/") === 0) return;
 
   event.respondWith(networkFirst(request));
+});
+
+/* ---- notifications push ---- */
+self.addEventListener("push", function (event) {
+  event.waitUntil((async function () {
+    var title = "sam quiz";
+    var body = "Du nouveau t'attend sur sam quiz !";
+    var url = "/";
+    try {
+      var sub = await self.registration.pushManager.getSubscription();
+      if (sub) {
+        var res = await fetch("/api/pushmsg", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: sub.endpoint })
+        });
+        if (res.ok) {
+          var m = await res.json();
+          if (m && m.title) {
+            title = m.title;
+            body = m.body || body;
+            url = m.url || "/";
+          }
+        }
+      }
+    } catch (e) {}
+    await self.registration.showNotification(title, {
+      body: body,
+      data: { url: url }
+    });
+  })());
+});
+
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+  var url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
+      for (var i = 0; i < list.length; i++) {
+        if ("focus" in list[i]) return list[i].focus();
+      }
+      return self.clients.openWindow(url);
+    })
+  );
 });
