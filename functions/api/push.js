@@ -73,7 +73,7 @@ export async function onRequest(context) {
   var given = url.searchParams.get("key") || context.request.headers.get("x-cron-key") || "";
 
   if (!env.CRON_KEY || !same(given, env.CRON_KEY)) {
-    return new Response("forbidden", { status: 403 });
+    return new Response("forbidden" + (!env.CRON_KEY ? " : CRON_KEY absente" : String(given).length !== String(env.CRON_KEY).length ? " : longueur differente" : " : meme longueur, caracteres differents"), { status: 403 });
   }
   if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_KEY) {
     return json({ error: "configuration incomplete" }, 500);
